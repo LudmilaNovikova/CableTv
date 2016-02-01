@@ -1,6 +1,5 @@
 package big.data.cable.tv
 
-import kafka.serializer.StringDecoder
 import org.apache.spark.{SparkContext, SparkConf}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.streaming.kafka._
@@ -22,8 +21,7 @@ object KafkaStreamProcessing {
     }
 */
 //    val brokers = "sandbox.hortonworks.com:6667"//args(0)
-//    val brokers = "192.168.253.129:2181"//args(0)
-    val brokers = "192.168.253.129:6667"//args(0)
+    val brokers = "bigdata1.nnstu.com:9092"//args(0)
 
     val sparkConf = new SparkConf()
     sparkConf.setAppName("KafkaStreamProcessing")
@@ -35,24 +33,24 @@ object KafkaStreamProcessing {
     // Create direct kafka stream with brokers and topics
     val topic = "SbtStream"
     val topicsSet = Set(topic)
-    val kafkaParams = Map[String, String]("metadata.broker.list" -> brokers)
+    val kafkaParams = Map(
+      "zookeeper.connect" -> "bigdata1.nnstu.com:2181",
+      "zookeeper.connection.timeout.ms" -> "1000",
+      "metadata.broker.list" -> brokers
+    )
+//    val kafkaParams = Map[String, String]("metadata.broker.list" -> brokers)
     val messages = KafkaUtils.createDirectStream(ssc, kafkaParams, topicsSet)
+    messages.print(5)
+//    directKafkaStream.foreachRDD(rdd => for (line <- rdd) println(line))
+//    val messages2 = messages.map(_._2)
 
-    println(messages)
-    messages.saveAsTextFiles("cableTvData", "txt")
+//    messages.saveAsTextFiles("cableTvData", "txt")
 
     // Start the computation
     ssc.start()
     ssc.awaitTermination()
 
     sc.stop();
-
-/*
-
-    val directKafkaStream = KafkaUtils.createDirectStream[
-      [key class], [value class], [key decoder class], [value decoder class] ](
-      streamingContext, [map of Kafka parameters], [set of topics to consume])
-*/
 
   }
 
