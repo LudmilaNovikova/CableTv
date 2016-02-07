@@ -40,12 +40,18 @@ object KafkaStreamProcessing {
     )
     val messages = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](ssc, kafkaParams, topicsSet)
     messages.foreachRDD( rdd =>
-      rdd.foreach ( record =>
-        println(record) // executed at the worker
-      )
+      { if(rdd.count() > 0){
+          println("Going to save to file: " + rdd.collect().foreach(println(_)))
+          rdd.saveAsTextFile("cableTvDataRdd2")
+          rdd.foreach ( record =>
+            println(record) // executed at the worker
+          )
+        }
+      }
     )
     messages.print(5)
 //    messages.saveAsTextFiles("cableTvData", "txt")
+//    messages.saveAsHadoopFiles("cableTvData", "txt")
 
     // Start the computation
     ssc.start()
