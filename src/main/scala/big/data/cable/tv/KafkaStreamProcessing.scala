@@ -1,6 +1,8 @@
 package big.data.cable.tv
 
-import org.apache.spark.sql.{DataFrameWriter, SaveMode}
+import big.data.cable.tv.service.HiveService
+import com.artezio.novikova.ludmila.{SbtStructuredMessageService, HiveService}
+import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkContext, SparkConf}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.streaming.kafka._
@@ -28,14 +30,12 @@ object KafkaStreamProcessing {
 
     val sparkConf = new SparkConf()
     sparkConf.setAppName("KafkaStreamProcessing")
-    sparkConf.setMaster("local[2]")
+//    sparkConf.setMaster("local[2]")
     val sc = new SparkContext(sparkConf)
     val ssc = new StreamingContext(sc, Seconds(2))
-    System.setProperty("hadoop.home.dir", "C:\\winutil\\")
     val sqlContext = new HiveContext(sc)
-    import sqlContext.implicits._
 
-    createHiveTableSbtStructuredMessages(sqlContext)
+    HiveService.createTableSbtStructuredMessages(sqlContext)
 
     // Create direct kafka stream with brokers and topics
     val topic = "SbtStream"
@@ -54,7 +54,9 @@ object KafkaStreamProcessing {
 //        rdd.saveAsTextFile("cableTvDataRdd")
         // save to Hive
 //        rdd.toDF().insertInto("SbtStructuredMessages")
-        rdd.toDF().write.mode(SaveMode.Append).insertInto("SbtStructuredMessages")
+        val valuesRdd: RDD[String] = rdd.map(???)
+        val sbtStructuredMessages = SbtStructuredMessageService.getSbtStructuredMessages(valuesRdd)
+        HiveService.insertIntoTable(sqlContext, "SbtStructuredMessages", sbtStructuredMessages)
 //        new DataFrameWriter(rdd.toDF()).mode(SaveMode.Append).insertInto("SbtStructuredMessages")
         rdd.foreach(record =>
           println(record) // executed at the worker
@@ -71,59 +73,6 @@ object KafkaStreamProcessing {
     ssc.awaitTermination()
 
     sc.stop();
-
-  }
-
-  def createHiveTableSbtStructuredMessages(sqlContext: HiveContext): Unit = {
-    println("Creating Hive table SbtStructuredMessages")
-    sqlContext.sql("CREATE TABLE IF NOT EXISTS SbtStructuredMessages (" +
-      "msgType String, " +
-      "streamType String, " +
-      "mesDate Timestamp, " +
-      "mesInterval Timestamp, " +
-      "mac String, " +
-      "streamAddr String, " +
-      "received Int, " +
-      "linkFaults Int, " +
-      "lostOverflow String, " +
-      "lost Int, " +
-      "restored Int, " +
-      "overflow Int, " +
-      "underflow Int, " +
-      "mdiDf Int, " +
-      "mdiMlr Double, " +
-      "plc String," +
-      "regionId Int," +
-      "serviceAccountNumber String," +
-      "stbIp String," +
-      "serverDate Timestamp, " +
-      "spyVersion String," +
-      "playerUrl String," +
-      "contentType Int," +
-      "transportOuter Int," +
-      "transportInner Int," +
-      "channelId Int," +
-      "playSession Int," +
-      "scrambled Int," +
-      "powerState Int," +
-      "uptime Int," +
-      "casType Int," +
-      "casKeyTime Int," +
-      "vidFrames Int," +
-      "vidDecodeErrors Int," +
-      "vidDataErrors Int," +
-      "audFrames Int," +
-      "audDataErrors Int," +
-      "avTimeSkew Int," +
-      "avPeriodSkew Int," +
-      "bufUnderruns Int," +
-      "bufOverruns Int," +
-      "sdpObjectId Int," +
-      "dvbLevelGood Int," +
-      "dvbLevel Int," +
-      "dvbFrequency Int," +
-      "curBitrate Int " +
-      ")")
 
   }
 
