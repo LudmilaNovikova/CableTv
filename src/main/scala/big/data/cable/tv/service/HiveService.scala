@@ -1,7 +1,6 @@
-package com.artezio.novikova.ludmila
+package big.data.cable.tv.service
 
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.hive.HiveContext
 /**
  * Created by lnovikova on 10.02.2016.

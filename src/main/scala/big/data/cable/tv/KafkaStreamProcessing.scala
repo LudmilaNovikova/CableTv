@@ -1,7 +1,6 @@
 package big.data.cable.tv
 
-import big.data.cable.tv.service.HiveService
-import com.artezio.novikova.ludmila.{SbtStructuredMessageService, HiveService}
+import big.data.cable.tv.service.{SbtStructuredMessageService, HiveService}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkContext, SparkConf}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
@@ -54,7 +53,7 @@ object KafkaStreamProcessing {
 //        rdd.saveAsTextFile("cableTvDataRdd")
         // save to Hive
 //        rdd.toDF().insertInto("SbtStructuredMessages")
-        val valuesRdd: RDD[String] = rdd.map(???)
+        val valuesRdd: RDD[String] = rdd.map(x => x._2)
         val sbtStructuredMessages = SbtStructuredMessageService.getSbtStructuredMessages(valuesRdd)
         HiveService.insertIntoTable(sqlContext, "SbtStructuredMessages", sbtStructuredMessages)
 //        new DataFrameWriter(rdd.toDF()).mode(SaveMode.Append).insertInto("SbtStructuredMessages")

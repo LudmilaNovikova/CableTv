@@ -1,4 +1,4 @@
-package com.artezio.novikova.ludmila
+package big.data.cable.tv.service
 
 import java.sql.Timestamp
 
