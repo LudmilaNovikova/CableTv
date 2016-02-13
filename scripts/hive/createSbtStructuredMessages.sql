@@ -1,4 +1,5 @@
-CREATE TABLE IF NOT EXISTS SbtStructuredMessages (
+!connect jdbc:hive2://192.168.1.35:10000 hive hive org.apache.hive.jdbc.HiveDriver
+CREATE TABLE IF NOT EXISTS SbtStructuredMessage (
       msgType String, 
       streamType String, 
       mesDate Timestamp, 

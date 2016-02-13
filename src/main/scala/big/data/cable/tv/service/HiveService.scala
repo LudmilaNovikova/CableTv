@@ -1,6 +1,7 @@
 package big.data.cable.tv.service
 
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.hive.HiveContext
 /**
  * Created by lnovikova on 10.02.2016.
@@ -10,13 +11,13 @@ object HiveService {
   def insertIntoTable(sqlContext: HiveContext, tableName: String, rdd: RDD[SbtStructuredMessage]): Unit ={
     import sqlContext.implicits._
     println("Going to insert: " + rdd.foreach(println(_)))
-    rdd.toDF().insertInto("SbtStructuredMessages")
-    //    rdd.toDF().write.mode(SaveMode.Append).insertInto("SbtStructuredMessages")
+//    rdd.toDF().insertInto("SbtStructuredMessages")
+    rdd.toDF().write.mode(SaveMode.Append).insertInto("SbtStructuredMessage")
   }
 
-  def createTableSbtStructuredMessages(sqlContext: HiveContext): Unit = {
-    println("Creating Hive table SbtStructuredMessages")
-    sqlContext.sql("CREATE TABLE IF NOT EXISTS SbtStructuredMessages (" +
+  def createTableSbtStructuredMessage(sqlContext: HiveContext): Unit = {
+    println("Creating Hive table SbtStructuredMessage")
+    sqlContext.sql("CREATE TABLE IF NOT EXISTS SbtStructuredMessage (" +
       "msgType String, " +
       "streamType String, " +
       "mesDate Timestamp, " +

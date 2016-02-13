@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-sudo -u hdfs spark-submit --class big.data.cable.tv.KafkaStreamProcessing --master yarn-client --executor-memory 2G --num-executors 3 /opt/projects/cableTv/cabletv_2.10-1.0.jar > /opt/projects/cableTv/log/cableTvStreaming.log
+sudo -u hdfs spark-submit --class big.data.cable.tv.KafkaStreamProcessing --master yarn-client --executor-memory 2G --num-executors 3 /opt/lnovikova/cabelTV/streaming/cabletv_2.10-1.0.jar #> /opt/lnovikova/cabelTV/streaming/log/cableTvStreaming.log

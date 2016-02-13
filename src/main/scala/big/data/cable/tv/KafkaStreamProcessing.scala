@@ -34,7 +34,7 @@ object KafkaStreamProcessing {
     val ssc = new StreamingContext(sc, Seconds(2))
     val sqlContext = new HiveContext(sc)
 
-    HiveService.createTableSbtStructuredMessages(sqlContext)
+    HiveService.createTableSbtStructuredMessage(sqlContext)
 
     // Create direct kafka stream with brokers and topics
     val topic = "SbtStream"
@@ -52,11 +52,9 @@ object KafkaStreamProcessing {
         // save to hdfs
 //        rdd.saveAsTextFile("cableTvDataRdd")
         // save to Hive
-//        rdd.toDF().insertInto("SbtStructuredMessages")
         val valuesRdd: RDD[String] = rdd.map(x => x._2)
         val sbtStructuredMessages = SbtStructuredMessageService.getSbtStructuredMessages(valuesRdd)
-        HiveService.insertIntoTable(sqlContext, "SbtStructuredMessages", sbtStructuredMessages)
-//        new DataFrameWriter(rdd.toDF()).mode(SaveMode.Append).insertInto("SbtStructuredMessages")
+        HiveService.insertIntoTable(sqlContext, "SbtStructuredMessage", sbtStructuredMessages)
         rdd.foreach(record =>
           println(record) // executed at the worker
         )
