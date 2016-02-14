@@ -55,9 +55,9 @@ object KafkaStreamProcessing {
         val valuesRdd: RDD[String] = rdd.map(x => x._2)
         val sbtStructuredMessages = SbtStructuredMessageService.getSbtStructuredMessages(valuesRdd)
         HiveService.insertIntoTable(sqlContext, "SbtStructuredMessage", sbtStructuredMessages)
-        rdd.foreach(record =>
+/*        rdd.foreach(record =>
           println(record) // executed at the worker
-        )
+        )*/
       }
     }
     )

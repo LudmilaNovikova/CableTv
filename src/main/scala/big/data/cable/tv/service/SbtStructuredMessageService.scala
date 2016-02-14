@@ -17,7 +17,7 @@ object SbtStructuredMessageService {
     rdd.foreach(println(_))
 
     rdd.map(_.split(" ")).map(r => SbtStructuredMessage(
-      r(0).toInt,
+      SbtStructuredMessage0(r(0).toInt,
       r(1),
       r(2),
       new Timestamp(format.parse(r(3) + " " + r(4)).getTime()),
@@ -36,10 +36,10 @@ object SbtStructuredMessageService {
       r(18),
       r(19).toInt,
       r(20),
-      r(21)/*,
+      r(21),
       new Timestamp(format.parse(r(22) + " " + r(23)).getTime()),
-      r(24),
-      r(25),
+      r(24)),
+      SbtStructuredMessage1(r(25),
       if(r(26).equals("X")){-1}else{r(26).toInt},
       if(r(27).equals("X")){-1}else{r(27).toInt},
       if(r(28).equals("X")){-1}else{r(28).toInt},
@@ -58,12 +58,12 @@ object SbtStructuredMessageService {
       r(42).toInt,
       r(43).toInt,
       r(44).toInt,
-      r(45).toInt,
-      r(46).toInt,
+      r(45).toInt),
+      SbtStructuredMessage2(r(46).toInt,
       r(47).toInt,
       r(48).toInt,
       r(49).toInt,
-      r(50).toInt*/
+      r(50).toInt)
     )
     )//    saveFileToHdfs(sc)
 
