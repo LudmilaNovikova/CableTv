@@ -48,7 +48,7 @@ object KafkaStreamProcessing {
     val messages = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](ssc, kafkaParams, topicsSet)
     messages.foreachRDD(rdd => {
       if (rdd.count() > 0) {
-        println("Going to save to file: " + rdd.collect().foreach(println(_)))
+//        println("Going to save to file: " + rdd.collect().foreach(println(_)))
         // save to hdfs
 //        rdd.saveAsTextFile("cableTvDataRdd")
         // save to Hive
@@ -61,7 +61,7 @@ object KafkaStreamProcessing {
       }
     }
     )
-    messages.print(5)
+//    messages.print(5)
     //    messages.saveAsTextFiles("cableTvData", "txt")
     //    messages.saveAsHadoopFiles("cableTvData", "txt")
 
