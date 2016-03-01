@@ -14,7 +14,7 @@ object SbtStructuredMessageService {
     val format = new java.text.SimpleDateFormat("DD/MM/YYYY HH:mm:ss.SSS")
     val timeFormat = new java.text.SimpleDateFormat("mm:ss.SSS")
     println("Received string for converting to SbtStructuredMessage: " + rdd.count())
-    rdd.foreach(println(_))
+//    rdd.foreach(println(_))
 
     rdd.map(_.split(" ")).map(r => SbtStructuredMessage(
       SbtStructuredMessage0(r(0).toInt,

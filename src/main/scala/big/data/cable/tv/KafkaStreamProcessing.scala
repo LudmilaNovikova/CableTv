@@ -29,7 +29,6 @@ object KafkaStreamProcessing {
 
     val sparkConf = new SparkConf()
     sparkConf.setAppName("KafkaStreamProcessing")
-//    sparkConf.setMaster("local[2]")
     val sc = new SparkContext(sparkConf)
     val ssc = new StreamingContext(sc, Seconds(2))
     val sqlContext = new HiveContext(sc)
