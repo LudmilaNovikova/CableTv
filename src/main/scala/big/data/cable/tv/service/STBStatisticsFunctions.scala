@@ -2,11 +2,13 @@ package big.data.cable.tv.service
 
 
 import big.data.cable.tv.STBStatistics._
+import org.joda.time.{Period, DateTime}
 import org.apache.log4j.Logger
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Row, SQLContext}
+import org.joda.time.format.PeriodFormatterBuilder
 import org.slf4j.LoggerFactory
 
 
@@ -97,28 +99,30 @@ object STBStatisticsFunctions {
     return dfN
   }
 
-  def initQ(sc: SparkContext, sqlContext: SQLContext, dfPrimaryData: DataFrame, countCluster: Int): DataFrame = {
+  def initQ(sc: SparkContext, sqlContext: SQLContext, dfPrimaryData: DataFrame, countCluster: Int, timeSt:DateTime): DataFrame = {
     val logger = Logger.getLogger(getClass.getName)
-    logger.info("Creating Hive table Q")
-    sqlContext.sql("CREATE TABLE IF NOT EXISTS Q (" +
+    val createQ = sqlContext.sql("CREATE TABLE IF NOT EXISTS Q (" +
       "mac String," +
       "cluster Int," +
       "pvod Double" +
       ")")
+    var timeStart = loggingDuration("Creating Hive table Q" + createQ.count()+":",timeSt,logger)
 
     //checking the count of clusters
+    logger.info("checking the count of clusters")
     val dfCluster = sqlContext.sql("select distinct cluster from Q")
     if(dfCluster.count()!=0 && dfCluster.count()!=countCluster){
       sqlContext.sql("DELETE FROM Q")
     }
+    timeStart = loggingDuration("checking the count of clusters " + dfCluster.count()+"("+countCluster+"):",timeStart,logger)
 
     val dfPrimaryDataDistMac = dfPrimaryData.select(col("SbtStructuredMessage0.mac").as("macDist")).distinct()
     dfPrimaryDataDistMac.registerTempTable("primaryDataDistMac")
-    logger.info("dfPrimaryDataDistMac")
+    timeStart = loggingDuration("register temp table dfPrimaryDataDistMac " + dfPrimaryDataDistMac.count()+":",timeStart,logger)
     dfPrimaryDataDistMac.show()
     val dfMac = sqlContext.sql("select distinct mac from Q")
     dfMac.registerTempTable("distMac")
-    logger.info("dfMac")
+    timeStart = loggingDuration("register temp table dfMac " + dfMac.count()+":",timeStart,logger)
     dfMac.show()
 
     val dfActualDistMac = sqlContext.sql(
@@ -126,7 +130,7 @@ object STBStatisticsFunctions {
         |left join distMac dm on (pd.macDist = dm.mac)
         |WHERE  dm.mac is null
       """.stripMargin)
-    logger.info("dfActualDistMac")
+    timeStart = loggingDuration("select actual mac: DF dfActualDistMac " + dfActualDistMac.count()+":",timeStart,logger)
     dfActualDistMac.show()
 
     val schemaQ = StructType(
@@ -136,7 +140,7 @@ object STBStatisticsFunctions {
     var dfQ = sqlContext.createDataFrame(sc.emptyRDD[Row], schemaQ)
 
         if(dfActualDistMac.count()!=0){
-          logger.info("count dfActualDistMac:"+dfActualDistMac.count())
+          timeStart = loggingDuration("count dfActualDistMac: " + dfActualDistMac.count()+":",timeStart,logger)
           for (i <- 1 to countCluster) {
             val valueSum = dfActualDistMac
               .join(dfQ, dfActualDistMac("macDist") === dfQ("mac"), "left_outer")
@@ -145,9 +149,10 @@ object STBStatisticsFunctions {
               .withColumn("rand", rand().cast(DoubleType))
               .withColumn("pvod", myFunc(col("sum_pvod"), col("rand"), lit(i == countCluster: Boolean)))
               .select(col("macDist").as("mac"), col("cluster"), col("pvod"))
-            logger.info("for i"+i+" valueSum:")
+            timeStart = loggingDuration("for i"+i+" valueSum: " + valueSum.count()+":",timeStart,logger)
             valueSum.show()
             dfQ = dfQ.unionAll(valueSum)
+            timeStart = loggingDuration("for i"+i+" dfQ.unionAll(valueSum): " + dfQ.count()+":",timeStart,logger)
           }
           /*
           val checksumCount = dfQ.groupBy(col("mac")).agg(sum("pvod").as("checksum")).filter("checksum<>1").count()
@@ -161,7 +166,7 @@ object STBStatisticsFunctions {
         }
         //end --create dfQ
         //dfQ.show(100)
-
+    timeStart = loggingDuration("return dfQ: " + dfQ.count()+":",timeStart,logger)
     return dfQ
   }
 
@@ -314,5 +319,12 @@ object STBStatisticsFunctions {
       if (isLastClaster) pvod else pvod * r
     }
   )
+
+  def loggingDuration(discr:String,timeStart:DateTime,logger:Logger ):DateTime = {
+    val hms = new PeriodFormatterBuilder().minimumPrintedDigits(2).printZeroAlways().appendHours().appendSeparator(":").appendMinutes().appendSuffix(":").appendSeconds().toFormatter
+    val period = new Period(timeStart, new DateTime()).normalizedStandard()
+    logger.info(discr+ ":" + hms.print(period))
+    return new DateTime
+  }
 
 }

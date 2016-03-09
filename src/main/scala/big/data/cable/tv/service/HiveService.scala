@@ -10,7 +10,7 @@ object HiveService {
 
   def insertIntoTable(sqlContext: HiveContext, tableName: String, rdd: RDD[SbtStructuredMessage]): Unit ={
     import sqlContext.implicits._
-    println("Going to insert: " + rdd.foreach(println(_)))
+//    println("Going to insert: " + rdd.foreach(println(_)))
 //    rdd.toDF().insertInto("SbtStructuredMessages")
     rdd.toDF().write.mode(SaveMode.Append).insertInto("SbtStructuredMessage")
   }

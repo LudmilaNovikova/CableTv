@@ -32,42 +32,46 @@ object STBStatistics {
 
 
     var timeStart = new DateTime()
-    val hms = new PeriodFormatterBuilder().minimumPrintedDigits(2).printZeroAlways().appendHours().appendSeparator(":").appendMinutes().appendSuffix(":").appendSeconds().toFormatter
-    /*
-        logger.info("SELECT * FROM SbtStructuredMessage LIMIT 100")
-        val dfAll = sqlContext.sql("SELECT * FROM SbtStructuredMessage LIMIT 100")
+/*
+    logger.info("SELECT * FROM SbtStructuredMessage LIMIT 100")
+    val dfAll = sqlContext.sql("SELECT * FROM SbtStructuredMessage LIMIT 100")
 
-        STBStatisticsFunctions.writeCommonStatistics(dfAll,args(0))
-        val periodCS = new Period(timeStart, new DateTime()).normalizedStandard()
-        logger.info("periodCS:" + hms.print(periodCS))
-    */
+    STBStatisticsFunctions.writeCommonStatistics(dfAll, args(0))
+    STBStatisticsFunctions.loggingDuration("periodCS:", timeStart, logger)
+*/
+
+
     val columnStat  = Array("SbtStructuredMessage0.msgType","SbtStructuredMessage0.streamType","SbtStructuredMessage0.spyVersion","SbtStructuredMessage1.playerUrl")
     val countCluster = 4
 
     val dfInterval = sqlContext.sql("SELECT * FROM SbtStructuredMessage LIMIT 10")
+    logger.info("SELECT * FROM SbtStructuredMessage LIMIT 10")
+    dfInterval.show()
 
     timeStart = new DateTime()
-    val dfQ = STBStatisticsFunctions.initQ(sc, sqlContext, dfInterval, countCluster)
-    val periodQ = new Period(timeStart, new DateTime()).normalizedStandard()
-    logger.info("periodQ:" + hms.print(periodQ) + " count" + dfQ.count())
+    val dfQ = STBStatisticsFunctions.initQ(sc, sqlContext, dfInterval, countCluster,timeStart)
+    STBStatisticsFunctions.loggingDuration("periodQ count" + dfQ.count()+":",timeStart,logger)
 
-/*
+    /*
     timeStart = new DateTime()
     val dfJ = STBStatisticsFunctions.initJ(sc, sqlContext, dfInterval, countCluster,columnStat)
     val periodJ = new Period(timeStart, new DateTime()).normalizedStandard()
     logger.info("periodJ:" + hms.print(periodJ) + " count" + dfJ.count())
-
-
-    timeStart = new DateTime()
-    val dfH = STBStatisticsFunctions.H(sqlContext,dfQ,dfJ)
-    val periodH = new Period(timeStart, new DateTime()).normalizedStandard()
-    logger.info("periodH:" + hms.print(periodH)+" count" +dfH.count())
-
-
-    timeStart = new DateTime()
-    val dfN = STBStatisticsFunctions.initN(sc, sqlContext, dfInterval, columnStat)
-    val periodN = new Period(timeStart, new DateTime()).normalizedStandard()
-    logger.info("periodN:" + hms.print(periodN)+" count" +dfN.count())
 */
+    /*
+
+        timeStart = new DateTime()
+        val dfH = STBStatisticsFunctions.H(sqlContext,dfQ,dfJ)
+        val periodH = new Period(timeStart, new DateTime()).normalizedStandard()
+        logger.info("periodH:" + hms.print(periodH)+" count" +dfH.count())
+
+
+        timeStart = new DateTime()
+        val dfN = STBStatisticsFunctions.initN(sc, sqlContext, dfInterval, columnStat)
+        val periodN = new Period(timeStart, new DateTime()).normalizedStandard()
+        logger.info("periodN:" + hms.print(periodN)+" count" +dfN.count())
+    */
+
+    sc.stop()
   }
 }
