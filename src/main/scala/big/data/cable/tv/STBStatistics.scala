@@ -15,7 +15,6 @@ object STBStatistics {
 
   def main(args: Array[String]): Unit ={
     val logger = Logger.getLogger(getClass.getName)
-    logger.info("i write logs!!!!!!")
     if (args.length < 1) {
       System.err.println(s"""
                             |Usage: STBStatistics <path to save statistics file>
@@ -46,11 +45,11 @@ object STBStatistics {
 
     val dfInterval = sqlContext.sql("SELECT * FROM SbtStructuredMessage LIMIT 10")
     logger.info("SELECT * FROM SbtStructuredMessage LIMIT 10")
-    dfInterval.show()
+    dfInterval.select("SbtStructuredMessage0.mac").show()
 
     timeStart = new DateTime()
     val dfQ = STBStatisticsFunctions.initQ(sc, sqlContext, dfInterval, countCluster,timeStart)
-    STBStatisticsFunctions.loggingDuration("periodQ count" + dfQ.count()+":",timeStart,logger)
+    timeStart = STBStatisticsFunctions.loggingDuration("periodQ count" + dfQ.count() ,timeStart,logger)
 
     /*
     timeStart = new DateTime()
@@ -73,5 +72,7 @@ object STBStatistics {
     */
 
     sc.stop()
+    STBStatisticsFunctions.loggingDuration("sc.stop()" + dfQ.count() ,timeStart,logger)
+
   }
 }
