@@ -100,6 +100,7 @@ object STBStatisticsFunctions {
   }
 
   def initQ(sc: SparkContext, sqlContext: SQLContext, dfPrimaryData: DataFrame, countCluster: Int, timeSt: DateTime): DataFrame = {
+  /*
     val logger = Logger.getLogger(getClass.getName)
     val createQ = sqlContext.sql("CREATE TABLE IF NOT EXISTS Q (" +
       "mac String," +
@@ -115,23 +116,39 @@ object STBStatisticsFunctions {
       sqlContext.sql("DELETE FROM Q")
     }
     timeStart = loggingDuration("checking the count of clusters " + dfCluster.count() + "(" + countCluster + ")", timeStart, logger)
+    */
 
-    val dfPrimaryDataDistMac = dfPrimaryData.select(col("SbtStructuredMessage0.mac").as("macDist")).distinct()
+
+    dfPrimaryData.registerTempTable("PrimaryData")
+    val dfPrimaryDataDistMac = sqlContext.sql("SELECT DISTINCT(sbtstructuredmessage0.mac) as macDist from PrimaryData")
+    println("dfPrimaryDataDistMac "+dfPrimaryDataDistMac.count())
     dfPrimaryDataDistMac.show()
     dfPrimaryDataDistMac.registerTempTable("primaryDataDistMac")
-    dfPrimaryDataDistMac.show()
-    timeStart = loggingDuration("register temp table dfPrimaryDataDistMac " + dfPrimaryDataDistMac.count(), timeStart, logger)
+    //timeStart = loggingDuration("register temp table dfPrimaryDataDistMac " + dfPrimaryDataDistMac.count(), timeSt, logger)
+
     val dfMac = sqlContext.sql("select distinct mac from Q")
     dfMac.registerTempTable("distMac")
-    timeStart = loggingDuration("register temp table dfMac " + dfMac.count(), timeStart, logger)
+    //timeStart = loggingDuration("register temp table dfMac " + dfMac.count(), timeStart, logger)
+
+    val test1 = sqlContext.sql(
+      """SELECT * FROM primaryDataDistMac pd
+        |left join distMac dm on (pd.macDist = dm.mac)
+        |WHERE  dm.mac is null
+      """.stripMargin)
+    println("test")
+    test1.show()
+    val test2 = sqlContext.sql("select * from primaryDataDistMac")
+    println("test2")
+    test2.show()
 
     val dfActualDistMac = sqlContext.sql(
       """SELECT pd.macDist FROM primaryDataDistMac pd
         |left join distMac dm on (pd.macDist = dm.mac)
         |WHERE  dm.mac is null
       """.stripMargin)
-    timeStart = loggingDuration("select actual mac: DF dfActualDistMac " + dfActualDistMac.count() , timeStart, logger)
+    //timeStart = loggingDuration("select actual mac: DF dfActualDistMac " + dfActualDistMac.count() , timeStart, logger)
 
+    println("dfActualDistMac "+dfActualDistMac.count())
     dfActualDistMac.show()
 
     val schemaQ = StructType(
@@ -139,7 +156,7 @@ object STBStatisticsFunctions {
         StructField("cluster", IntegerType, false) ::
         StructField("pvod", DoubleType, false) :: Nil)
     var dfQ = sqlContext.createDataFrame(sc.emptyRDD[Row], schemaQ)
-
+/*
     if (dfActualDistMac.count() != 0) {
       timeStart = loggingDuration("count dfActualDistMac: " + dfActualDistMac.count() , timeStart, logger)
       for (i <- 1 to countCluster) {
@@ -169,9 +186,10 @@ object STBStatisticsFunctions {
       timeStart = loggingDuration("INSERT INTO TABLE Q - " + dfQ.count() , timeStart, logger)
 */
     }
+    */
     //end --create dfQ
     //dfQ.show(100)
-    timeStart = loggingDuration("return dfQ - " + dfQ.count() , timeStart, logger)
+    //timeStart = loggingDuration("return dfQ - " + dfQ.count() , timeStart, logger)
     return dfQ
   }
 
