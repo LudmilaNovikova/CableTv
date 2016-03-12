@@ -1,6 +1,9 @@
 package big.data.cable.tv
 
+import java.util.Properties
+
 import big.data.cable.tv.service.{SbtStructuredMessageService, HiveService}
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkContext, SparkConf}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
@@ -32,6 +35,21 @@ object KafkaStreamProcessing {
     val sc = new SparkContext(sparkConf)
     val ssc = new StreamingContext(sc, Seconds(2))
     val sqlContext = new HiveContext(sc)
+
+val props: Properties = new Properties
+    props.put("bootstrap.servers", "192.168.1.31:9092")
+//    props.put("zk.connect", args(1))
+    props.put("acks", "0")
+    props.put("retries", "0")
+    props.put("batch.size", "16384")
+    props.put("linger.ms", "1")
+    props.put("buffer.memory", "33554432")
+    props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+    props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+
+    val TOPIC: String = "SbtFailure"
+    val producer: KafkaProducer[String, String] = new KafkaProducer[String, String](props)
+    producer.send(new ProducerRecord[String, String](TOPIC, "test again"))
 
     HiveService.createTableSbtStructuredMessage(sqlContext)
 
@@ -67,7 +85,6 @@ object KafkaStreamProcessing {
     // Start the computation
     ssc.start()
     ssc.awaitTermination()
-
     sc.stop();
 
   }
