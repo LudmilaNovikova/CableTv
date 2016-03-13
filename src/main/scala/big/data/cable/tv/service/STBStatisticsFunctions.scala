@@ -100,6 +100,10 @@ object STBStatisticsFunctions {
   }
 
   def initQ(sc: SparkContext, sqlContext: SQLContext, dfPrimaryData: DataFrame, countCluster: Int, timeSt: DateTime): DataFrame = {
+    println("dfPrimaryData "+dfPrimaryData.count())
+    dfPrimaryData.registerTempTable("dfPrimaryData")
+    sqlContext.sql("select sbtstructuredmessage0.mac from dfPrimaryData").show()
+
   /*
     val logger = Logger.getLogger(getClass.getName)
     val createQ = sqlContext.sql("CREATE TABLE IF NOT EXISTS Q (" +

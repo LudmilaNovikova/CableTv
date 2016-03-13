@@ -45,7 +45,10 @@ object STBStatistics {
 
     val dfInterval = sqlContext.sql("SELECT * FROM SbtStructuredMessage LIMIT 10")
     logger.info("SELECT * FROM SbtStructuredMessage LIMIT 10")
-    dfInterval.select("SbtStructuredMessage0.mac").show()
+
+    println("dfInterval "+dfInterval.count())
+    dfInterval.registerTempTable("Interval")
+    sqlContext.sql("select sbtstructuredmessage0.mac from Interval").show()
 
     timeStart = new DateTime()
     val dfQ = STBStatisticsFunctions.initQ(sc, sqlContext, dfInterval, countCluster,timeStart)
@@ -71,8 +74,8 @@ object STBStatistics {
         logger.info("periodN:" + hms.print(periodN)+" count" +dfN.count())
     */
 
+    STBStatisticsFunctions.loggingDuration("sc.stop()" ,timeStart,logger)
     sc.stop()
-    STBStatisticsFunctions.loggingDuration("sc.stop()" + dfQ.count() ,timeStart,logger)
 
   }
 }
