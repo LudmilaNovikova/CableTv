@@ -51,7 +51,7 @@ object STBStatistics {
     sqlContext.sql("select sbtstructuredmessage0.mac from Interval").show()
 
     timeStart = new DateTime()
-    val dfQ = STBStatisticsFunctions.initQ(sc, sqlContext, dfInterval, countCluster,timeStart)
+    val dfQ = STBStatisticsFunctions.initQTest(dfInterval, countCluster,timeStart)
     timeStart = STBStatisticsFunctions.loggingDuration("periodQ count" + dfQ.count() ,timeStart,logger)
 
     /*
