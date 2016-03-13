@@ -2,7 +2,8 @@ package big.data.cable.tv
 
 import java.util.Properties
 
-import big.data.cable.tv.service.{SbtStructuredMessageService, HiveService}
+import big.data.cable.tv.service.{SbtStructuredMessage, SbtStructuredMessageService, HiveService}
+import kafka.producer.Producer
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkContext, SparkConf}
@@ -16,6 +17,9 @@ import org.apache.spark.sql.hive.HiveContext
  */
 object KafkaStreamProcessing {
 
+  val failureTopic: String = "SbtFailure"
+  var producer: KafkaProducer[String, String] = null
+
   def main(args: Array[String]): Unit = {
 
     /*
@@ -28,28 +32,16 @@ object KafkaStreamProcessing {
           System.exit(1)
         }
     */
+    initProducer()
+
     val brokers = "bigdata1.nnstu.com:9092" //args(0)
 
     val sparkConf = new SparkConf()
     sparkConf.setAppName("KafkaStreamProcessing")
+//    sparkConf.setMaster("local[2]")
     val sc = new SparkContext(sparkConf)
     val ssc = new StreamingContext(sc, Seconds(2))
     val sqlContext = new HiveContext(sc)
-
-val props: Properties = new Properties
-    props.put("bootstrap.servers", "192.168.1.31:9092")
-//    props.put("zk.connect", args(1))
-    props.put("acks", "0")
-    props.put("retries", "0")
-    props.put("batch.size", "16384")
-    props.put("linger.ms", "1")
-    props.put("buffer.memory", "33554432")
-    props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
-    props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
-
-    val TOPIC: String = "SbtFailure"
-    val producer: KafkaProducer[String, String] = new KafkaProducer[String, String](props)
-    producer.send(new ProducerRecord[String, String](TOPIC, "test again"))
 
     HiveService.createTableSbtStructuredMessage(sqlContext)
 
@@ -65,28 +57,47 @@ val props: Properties = new Properties
     val messages = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](ssc, kafkaParams, topicsSet)
     messages.foreachRDD(rdd => {
       if (rdd.count() > 0) {
-//        println("Going to save to file: " + rdd.collect().foreach(println(_)))
-        // save to hdfs
-//        rdd.saveAsTextFile("cableTvDataRdd")
-        // save to Hive
         val valuesRdd: RDD[String] = rdd.map(x => x._2)
+        sendToKafkaFailureTopic(valuesRdd)
         val sbtStructuredMessages = SbtStructuredMessageService.getSbtStructuredMessages(valuesRdd)
         HiveService.insertIntoTable(sqlContext, "SbtStructuredMessage", sbtStructuredMessages)
-/*        rdd.foreach(record =>
-          println(record) // executed at the worker
-        )*/
       }
     }
     )
-//    messages.print(5)
-    //    messages.saveAsTextFiles("cableTvData", "txt")
-    //    messages.saveAsHadoopFiles("cableTvData", "txt")
 
     // Start the computation
     ssc.start()
     ssc.awaitTermination()
     sc.stop();
 
+  }
+
+  def sendToKafkaFailureTopic(messages: RDD[String]): Long = {
+    val filteredMessages = messages.filter(r => {
+      (r.split(" "))(44).toInt > 0
+    })
+    val count = filteredMessages.count()
+    println("Found messages messages with buffer underruns > 0. Count: " + count)
+    filteredMessages.collect().foreach(r => {
+      producer.send(new ProducerRecord[String, String](failureTopic, r))
+    }
+    )
+    count
+  }
+
+  def initProducer(): Unit ={
+    val props: Properties = new Properties
+    props.put("bootstrap.servers", "192.168.1.31:9092")
+    //    props.put("zk.connect", args(1))
+    props.put("acks", "0")
+    props.put("retries", "0")
+    props.put("batch.size", "16384")
+    props.put("linger.ms", "1")
+    props.put("buffer.memory", "33554432")
+    props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+    props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+
+    producer = new KafkaProducer[String, String](props)
   }
 
 }
