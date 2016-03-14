@@ -1,7 +1,9 @@
 package big.data.cable.tv
 
 import big.data.cable.tv.service.STBStatisticsFunctions
+import big.data.cable.tv.service.STBStatisticsFunctions._
 import org.apache.log4j.Logger
+import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.{SparkContext, SparkConf}
@@ -13,22 +15,18 @@ import org.joda.time.format.PeriodFormatterBuilder
   */
 object STBStatistics {
 
+  val sparkConf = new SparkConf()
+  val sc = new SparkContext(sparkConf)
+  val sqlContext = new HiveContext(sc)
+  val logger = Logger.getLogger(getClass.getName)
+
   def main(args: Array[String]): Unit ={
-    val logger = Logger.getLogger(getClass.getName)
     if (args.length < 1) {
       System.err.println(s"""
                             |Usage: STBStatistics <path to save statistics file>
             """.stripMargin)
       System.exit(1)
     }
-
-    logger.info("create context")
-    val sparkConf = new SparkConf()
-    sparkConf.setAppName("STBStatistics")
-    val sc = new SparkContext(sparkConf)
-    val sqlContext = new HiveContext(sc)
-    logger.info("create context success")
-
 
     var timeStart = new DateTime()
 /*
@@ -51,7 +49,8 @@ object STBStatistics {
     sqlContext.sql("select sbtstructuredmessage0.mac from Interval").show()
 
     timeStart = new DateTime()
-    val dfQ = STBStatisticsFunctions.initQTest(dfInterval, countCluster,timeStart)
+
+    val dfQ = STBStatisticsFunctions.initQTest(dfInterval,getDistinctMacQ(timeStart, countCluster), countCluster, timeStart)
     timeStart = STBStatisticsFunctions.loggingDuration("periodQ count" + dfQ.count() ,timeStart,logger)
 
     /*
@@ -77,5 +76,25 @@ object STBStatistics {
     STBStatisticsFunctions.loggingDuration("sc.stop()" ,timeStart,logger)
     sc.stop()
 
+  }
+
+  def getDistinctMacQ(timeSt: DateTime, countCluster: Int): DataFrame={
+    val createQ = sqlContext.sql("CREATE TABLE IF NOT EXISTS Q (" +
+      "mac String," +
+      "cluster Int," +
+      "pvod Double" +
+      ")")
+    var timeStart = loggingDuration("Creating Hive table Q - " + createQ.count(), timeSt, logger)
+
+    //checking the count of clusters
+    val dfCluster = sqlContext.sql("select distinct cluster from Q")
+    if (dfCluster.count() != 0 && dfCluster.count() != countCluster) {
+      logger.info("DELETE FROM Q")
+      sqlContext.sql("DELETE FROM Q")
+    }
+    timeStart = loggingDuration("checking the count of clusters " + dfCluster.count() + "(" + countCluster + ")", timeStart, logger)
+
+    val dfMac = sqlContext.sql("select distinct mac from Q")
+    return dfMac;
   }
 }
