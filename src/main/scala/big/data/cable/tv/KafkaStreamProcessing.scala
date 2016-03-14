@@ -17,7 +17,6 @@ import org.apache.spark.sql.hive.HiveContext
  */
 object KafkaStreamProcessing {
 
-  val topic = "StbStream"
   val failureTopic: String = "StbFailure"
   var producer: KafkaProducer[String, String] = null
 
@@ -25,9 +24,10 @@ object KafkaStreamProcessing {
 
     if (args.length < 1) {
       System.err.println( s"""
-            |Usage: KafkaStreamProcessing <brokers> <Hive table name>
+            |Usage: KafkaStreamProcessing <brokers> <Hive table name> <stb stream Kafka topic>
             |  <brokers> is a list of one or more Kafka brokers
             |  <Hive table name> table name for saving stb stream data
+            |  <stb stream kafka topic> Kafka topic used as stream data input for this spark streaming application
             """.stripMargin)
       System.exit(1)
     }
@@ -35,6 +35,7 @@ object KafkaStreamProcessing {
 
     val brokers = args(0)
     val stbDataTableName = args(1)
+    val topic = args(2)
 
     val sparkConf = new SparkConf()
     sparkConf.setAppName("KafkaStreamProcessing")
