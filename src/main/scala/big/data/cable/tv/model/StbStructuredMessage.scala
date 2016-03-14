@@ -5,15 +5,15 @@ import java.sql.Timestamp
 /**
  * Created by Raslu on 31.01.2016.
  */
-case class SbtStructuredMessage(
-                                 val sbtStructuredMessage0: SbtStructuredMessage0, //0
-                                 val sbtStructuredMessage1: SbtStructuredMessage1, //0
-                                 val sbtStructuredMessage2: SbtStructuredMessage2 //0
+case class StbStructuredMessage(
+                                 val stbStructuredMessage0: StbStructuredMessage0, //0
+                                 val stbStructuredMessage1: StbStructuredMessage1, //0
+                                 val stbStructuredMessage2: StbStructuredMessage2 //0
                                  ) {
 
 }
 
-case class SbtStructuredMessage0(
+case class StbStructuredMessage0(
                                  val counter: Int, //0
                                  val msgType: String, //1
                                  val streamType: String, //2
@@ -40,7 +40,7 @@ case class SbtStructuredMessage0(
 
 }
 
-case class SbtStructuredMessage1(
+case class StbStructuredMessage1(
                                  val playerUrl: String,
                                  val contentType: Int,
                                  val transportOuter: Int,
@@ -65,7 +65,7 @@ case class SbtStructuredMessage1(
 
 }
 
-case class SbtStructuredMessage2(
+case class StbStructuredMessage2(
                                   val sdpObjectId: Int,
                                   val dvbLevelGood: Int,
                                   val dvbLevel: Int,

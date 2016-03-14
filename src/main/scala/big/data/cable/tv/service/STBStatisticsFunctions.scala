@@ -19,62 +19,62 @@ object STBStatisticsFunctions {
   def writeCommonStatistics(primaryStatDF: DataFrame, pathStatistic: String): Unit = {
     import java.io._
     val writer = new PrintWriter(new File(pathStatistic + "/statistics.txt"))
-    writer.write(PrintDF.showString(primaryStatDF.describe("SbtStructuredMessage0.counter", "SbtStructuredMessage0.received", "SbtStructuredMessage0.linkFaults", "SbtStructuredMessage0.restored"
-      , "SbtStructuredMessage0.overflow", "SbtStructuredMessage0.underflow", "SbtStructuredMessage1.uptime", "SbtStructuredMessage1.vidDecodeErrors", "SbtStructuredMessage1.vidDataErrors"
-      , "SbtStructuredMessage1.avTimeSkew", "SbtStructuredMessage1.avPeriodSkew", "SbtStructuredMessage1.bufUnderruns", "SbtStructuredMessage1.bufOverruns", "SbtStructuredMessage2.dvbLevel"
-      , "SbtStructuredMessage2.curBitrate")
+    writer.write(PrintDF.showString(primaryStatDF.describe("StbStructuredMessage0.counter", "StbStructuredMessage0.received", "StbStructuredMessage0.linkFaults", "StbStructuredMessage0.restored"
+      , "StbStructuredMessage0.overflow", "StbStructuredMessage0.underflow", "StbStructuredMessage1.uptime", "StbStructuredMessage1.vidDecodeErrors", "StbStructuredMessage1.vidDataErrors"
+      , "StbStructuredMessage1.avTimeSkew", "StbStructuredMessage1.avPeriodSkew", "StbStructuredMessage1.bufUnderruns", "StbStructuredMessage1.bufOverruns", "StbStructuredMessage2.dvbLevel"
+      , "StbStructuredMessage2.curBitrate")
     )
     )
 
-    writer.write(PrintDF.showString(primaryStatDF.filter("SbtStructuredMessage0.lost>=0").describe("SbtStructuredMessage0.lost")))
-    writer.write(PrintDF.showString(primaryStatDF.filter("SbtStructuredMessage0.mdiDf>=0").describe("SbtStructuredMessage0.mdiDf")))
-    writer.write(PrintDF.showString(primaryStatDF.filter("SbtStructuredMessage0.mdiMlr>=0").describe("SbtStructuredMessage0.mdiMlr")))
-    writer.write(PrintDF.showString(primaryStatDF.filter("SbtStructuredMessage0.regionId>=0").describe("SbtStructuredMessage0.regionId")))
-    writer.write(PrintDF.showString(primaryStatDF.filter("SbtStructuredMessage1.contentType>=0").describe("SbtStructuredMessage1.contentType")))
+    writer.write(PrintDF.showString(primaryStatDF.filter("StbStructuredMessage0.lost>=0").describe("StbStructuredMessage0.lost")))
+    writer.write(PrintDF.showString(primaryStatDF.filter("StbStructuredMessage0.mdiDf>=0").describe("StbStructuredMessage0.mdiDf")))
+    writer.write(PrintDF.showString(primaryStatDF.filter("StbStructuredMessage0.mdiMlr>=0").describe("StbStructuredMessage0.mdiMlr")))
+    writer.write(PrintDF.showString(primaryStatDF.filter("StbStructuredMessage0.regionId>=0").describe("StbStructuredMessage0.regionId")))
+    writer.write(PrintDF.showString(primaryStatDF.filter("StbStructuredMessage1.contentType>=0").describe("StbStructuredMessage1.contentType")))
 
-    writer.write(PrintDF.showString(primaryStatDF.filter("SbtStructuredMessage1.transportOuter>=0").describe("SbtStructuredMessage1.transportOuter")))
-    writer.write(PrintDF.showString(primaryStatDF.filter("SbtStructuredMessage1.transportInner>=0").describe("SbtStructuredMessage1.transportInner")))
-    writer.write(PrintDF.showString(primaryStatDF.filter("SbtStructuredMessage1.channelId>=0").describe("SbtStructuredMessage1.channelId")))
-    writer.write(PrintDF.showString(primaryStatDF.filter("SbtStructuredMessage1.playSession>=0").describe("SbtStructuredMessage1.playSession")))
-    writer.write(PrintDF.showString(primaryStatDF.filter("SbtStructuredMessage1.scrambled>=0").describe("SbtStructuredMessage1.scrambled")))
-    writer.write(PrintDF.showString(primaryStatDF.filter("SbtStructuredMessage1.powerState>=0").describe("SbtStructuredMessage1.powerState")))
+    writer.write(PrintDF.showString(primaryStatDF.filter("StbStructuredMessage1.transportOuter>=0").describe("StbStructuredMessage1.transportOuter")))
+    writer.write(PrintDF.showString(primaryStatDF.filter("StbStructuredMessage1.transportInner>=0").describe("StbStructuredMessage1.transportInner")))
+    writer.write(PrintDF.showString(primaryStatDF.filter("StbStructuredMessage1.channelId>=0").describe("StbStructuredMessage1.channelId")))
+    writer.write(PrintDF.showString(primaryStatDF.filter("StbStructuredMessage1.playSession>=0").describe("StbStructuredMessage1.playSession")))
+    writer.write(PrintDF.showString(primaryStatDF.filter("StbStructuredMessage1.scrambled>=0").describe("StbStructuredMessage1.scrambled")))
+    writer.write(PrintDF.showString(primaryStatDF.filter("StbStructuredMessage1.powerState>=0").describe("StbStructuredMessage1.powerState")))
     //в инструкции написано 0 - неизвестно. Но в выборке присутствуют только значения -1(3) и 0 (30003)
-    writer.write(PrintDF.showString(primaryStatDF.filter("SbtStructuredMessage1.casType>0").describe("SbtStructuredMessage1.casType"))) //primaryStatDF.groupBy("casType").count().show()
+    writer.write(PrintDF.showString(primaryStatDF.filter("StbStructuredMessage1.casType>0").describe("StbStructuredMessage1.casType"))) //primaryStatDF.groupBy("casType").count().show()
     //36 CAS_KEY_TIME  0 - неизвестно
-    writer.write(PrintDF.showString(primaryStatDF.filter("SbtStructuredMessage1.casKeyTime>0").describe("SbtStructuredMessage1.casKeyTime"))) //primaryStatDF.groupBy("casKeyTime").count().show()
+    writer.write(PrintDF.showString(primaryStatDF.filter("StbStructuredMessage1.casKeyTime>0").describe("StbStructuredMessage1.casKeyTime"))) //primaryStatDF.groupBy("casKeyTime").count().show()
     //37 VID_FRAMES 0 - видеостати стика недоступна
-    writer.write(PrintDF.showString(primaryStatDF.filter("SbtStructuredMessage1.vidFrames>0").describe("SbtStructuredMessage1.vidFrames")))
-    writer.write(PrintDF.showString(primaryStatDF.filter("SbtStructuredMessage1.audFrames>0").describe("SbtStructuredMessage1.audFrames")))
+    writer.write(PrintDF.showString(primaryStatDF.filter("StbStructuredMessage1.vidFrames>0").describe("StbStructuredMessage1.vidFrames")))
+    writer.write(PrintDF.showString(primaryStatDF.filter("StbStructuredMessage1.audFrames>0").describe("StbStructuredMessage1.audFrames")))
     //т.к. поле audDataErrors показывает наличие ошибок при даступной аудиостатискики (audFrames>0) 0 здесь тоже информация для записей которые audFrames>0
-    writer.write(PrintDF.showString(primaryStatDF.filter("SbtStructuredMessage1.audFrames>0").describe("SbtStructuredMessage1.audDataErrors")))
-    writer.write(PrintDF.showString(primaryStatDF.filter("SbtStructuredMessage2.sdpObjectId>=0").describe("SbtStructuredMessage2.sdpObjectId")))
-    writer.write(PrintDF.showString(primaryStatDF.filter("SbtStructuredMessage2.dvbLevelGood>=0").describe("SbtStructuredMessage2.dvbLevelGood")))
-    writer.write(PrintDF.showString(primaryStatDF.filter("SbtStructuredMessage2.dvbLevel>=0").describe("SbtStructuredMessage2.dvbLevel")))
-    writer.write(PrintDF.showString(primaryStatDF.filter("SbtStructuredMessage2.dvbFrequency>=0").describe("SbtStructuredMessage2.dvbFrequency")))
+    writer.write(PrintDF.showString(primaryStatDF.filter("StbStructuredMessage1.audFrames>0").describe("StbStructuredMessage1.audDataErrors")))
+    writer.write(PrintDF.showString(primaryStatDF.filter("StbStructuredMessage2.sdpObjectId>=0").describe("StbStructuredMessage2.sdpObjectId")))
+    writer.write(PrintDF.showString(primaryStatDF.filter("StbStructuredMessage2.dvbLevelGood>=0").describe("StbStructuredMessage2.dvbLevelGood")))
+    writer.write(PrintDF.showString(primaryStatDF.filter("StbStructuredMessage2.dvbLevel>=0").describe("StbStructuredMessage2.dvbLevel")))
+    writer.write(PrintDF.showString(primaryStatDF.filter("StbStructuredMessage2.dvbFrequency>=0").describe("StbStructuredMessage2.dvbFrequency")))
 
 
 
-    writer.write(PrintDF.showString(primaryStatDF.groupBy("SbtStructuredMessage0.msgType").count()))
-    writer.write(PrintDF.showString(primaryStatDF.groupBy("SbtStructuredMessage0.streamType").count()))
+    writer.write(PrintDF.showString(primaryStatDF.groupBy("StbStructuredMessage0.msgType").count()))
+    writer.write(PrintDF.showString(primaryStatDF.groupBy("StbStructuredMessage0.streamType").count()))
     //primaryStatDF.groupBy("mac").count().show()
     //primaryStatDF.groupBy("streamAddr").count().show()
-    writer.write(PrintDF.showString(primaryStatDF.groupBy("SbtStructuredMessage0.lostOverflow").count()))
-    writer.write(PrintDF.showString(primaryStatDF.groupBy("SbtStructuredMessage0.plc").count()))
+    writer.write(PrintDF.showString(primaryStatDF.groupBy("StbStructuredMessage0.lostOverflow").count()))
+    writer.write(PrintDF.showString(primaryStatDF.groupBy("StbStructuredMessage0.plc").count()))
     //serviceAccountNumber
     //val dfFilterServiceAccountNumber = primaryStatDF.filter("serviceAccountNumber not in ('-1','N/A')")
     //dfFilterServiceAccountNumber.groupBy("serviceAccountNumber").count().join(dfFilterServiceAccountNumber.agg(count("serviceAccountNumber").as("countAll"))).show
     //primaryStatDF.groupBy("stbIp").count().show()
-    writer.write(PrintDF.showString(primaryStatDF.groupBy("SbtStructuredMessage0.spyVersion").count()))
+    writer.write(PrintDF.showString(primaryStatDF.groupBy("StbStructuredMessage0.spyVersion").count()))
     //playerUrl
-    val dfFilterPlayerUrl = primaryStatDF.filter("SbtStructuredMessage1.playerUrl not in ('X')")
-    writer.write(PrintDF.showString(dfFilterPlayerUrl.groupBy("SbtStructuredMessage1.playerUrl").count().join(dfFilterPlayerUrl.agg(count("SbtStructuredMessage1.playerUrl").as("countAll")))))
+    val dfFilterPlayerUrl = primaryStatDF.filter("StbStructuredMessage1.playerUrl not in ('X')")
+    writer.write(PrintDF.showString(dfFilterPlayerUrl.groupBy("StbStructuredMessage1.playerUrl").count().join(dfFilterPlayerUrl.agg(count("StbStructuredMessage1.playerUrl").as("countAll")))))
 
     writer.close()
 
     def logger = LoggerFactory.getLogger(this.getClass)
     logger.info("select data about 5 users")
 
-    val macListDF = primaryStatDF.groupBy(col("SbtStructuredMessage0.mac").as("mac1")).count().orderBy(desc("count")).limit(10).select("mac1")
+    val macListDF = primaryStatDF.groupBy(col("StbStructuredMessage0.mac").as("mac1")).count().orderBy(desc("count")).limit(10).select("mac1")
     val macDF = primaryStatDF.join(macListDF, macListDF("mac1") === primaryStatDF("mac")).select(primaryStatDF.col("*")) //.select(primaryStatDF.columns.mkString(", "))
     //macDF.show
     //macDF.write.parquet("parquetTest")
@@ -116,7 +116,7 @@ object STBStatisticsFunctions {
       }
 
     dfPrimaryData.registerTempTable("PrimaryData")
-    val dfPrimaryDataDistMac = sqlContext.sql("SELECT DISTINCT(sbtstructuredmessage0.mac) as macDist from PrimaryData")
+    val dfPrimaryDataDistMac = sqlContext.sql("SELECT DISTINCT(stbStructuredMessage0.mac) as macDist from PrimaryData")
     println("dfPrimaryDataDistMac " + dfPrimaryDataDistMac.count())
     dfPrimaryDataDistMac.show()
     dfPrimaryDataDistMac.registerTempTable("primaryDataDistMac")
@@ -183,7 +183,7 @@ object STBStatisticsFunctions {
     println("dfPrimaryData " + dfPrimaryData.count())
     dfPrimaryData.show()
 
-    val dfPrimaryDataDistMac = dfPrimaryData.select("sbtstructuredmessage0.mac").as("macDist").distinct()
+    val dfPrimaryDataDistMac = dfPrimaryData.select("stbStructuredMessage0.mac").as("macDist").distinct()
     println("dfPrimaryDataDistMac " + dfPrimaryDataDistMac.count())
     dfPrimaryDataDistMac.show()
 
@@ -243,7 +243,7 @@ object STBStatisticsFunctions {
     timeStart = printlnDuration("checking the count of clusters " + dfCluster.count() + "(" + countCluster + ")", timeStart)
 
     dfPrimaryData.registerTempTable("PrimaryData")
-    val dfPrimaryDataDistMac = sqlContext.sql("SELECT DISTINCT(sbtstructuredmessage0.mac) as macDist from PrimaryData")
+    val dfPrimaryDataDistMac = sqlContext.sql("SELECT DISTINCT(stbStructuredMessage0.mac) as macDist from PrimaryData")
     println("dfPrimaryDataDistMac " + dfPrimaryDataDistMac.count())
     dfPrimaryDataDistMac.show()
     dfPrimaryDataDistMac.registerTempTable("primaryDataDistMac")
@@ -335,7 +335,7 @@ object STBStatisticsFunctions {
       }
 
     dfPrimaryData.registerTempTable("PrimaryData")
-    val dfPrimaryDataDistMac = sqlContext.sql("SELECT DISTINCT(sbtstructuredmessage0.mac) as macDist from PrimaryData")
+    val dfPrimaryDataDistMac = sqlContext.sql("SELECT DISTINCT(stbStructuredMessage0.mac) as macDist from PrimaryData")
     println("dfPrimaryDataDistMac "+dfPrimaryDataDistMac.count())
     dfPrimaryDataDistMac.show()
     dfPrimaryDataDistMac.registerTempTable("primaryDataDistMac")

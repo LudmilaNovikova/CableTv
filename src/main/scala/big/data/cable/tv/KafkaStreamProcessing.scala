@@ -2,7 +2,7 @@ package big.data.cable.tv
 
 import java.util.Properties
 
-import big.data.cable.tv.service.{SbtStructuredMessage, SbtStructuredMessageService, HiveService}
+import big.data.cable.tv.service.{StbStructuredMessage, StbStructuredMessageService, HiveService}
 import kafka.producer.Producer
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 import org.apache.spark.rdd.RDD
@@ -17,40 +17,39 @@ import org.apache.spark.sql.hive.HiveContext
  */
 object KafkaStreamProcessing {
 
-  val failureTopic: String = "SbtFailure"
+  val topic = "StbStream"
+  val failureTopic: String = "StbFailure"
   var producer: KafkaProducer[String, String] = null
 
   def main(args: Array[String]): Unit = {
 
-    /*
-        if (args.length < 1) {
-          System.err.println(s"""
-            |Usage: KafkaStreamProcessing <brokers>
+    if (args.length < 1) {
+      System.err.println( s"""
+            |Usage: KafkaStreamProcessing <brokers> <Hive table name>
             |  <brokers> is a list of one or more Kafka brokers
-            |
+            |  <Hive table name> table name for saving stb stream data
             """.stripMargin)
-          System.exit(1)
-        }
-    */
+      System.exit(1)
+    }
     initProducer()
 
-    val brokers = "bigdata1.nnstu.com:9092" //args(0)
+    val brokers = args(0)
+    val stbDataTableName = args(1)
 
     val sparkConf = new SparkConf()
     sparkConf.setAppName("KafkaStreamProcessing")
-//    sparkConf.setMaster("local[2]")
+    //    sparkConf.setMaster("local[2]")
     val sc = new SparkContext(sparkConf)
     val ssc = new StreamingContext(sc, Seconds(2))
     val sqlContext = new HiveContext(sc)
 
-    HiveService.createTableSbtStructuredMessage(sqlContext)
+    HiveService.createTableStbStructuredMessage(sqlContext, stbDataTableName)
 
     // Create direct kafka stream with brokers and topics
-    val topic = "SbtStream"
     val topicsSet = Set(topic)
     val kafkaParams = Map(
       "zookeeper.connect" -> "bigdata1.nnstu.com:2181",
-      "group.id" -> "sbtGroupId",
+      "group.id" -> "stbGroupId",
       "metadata.broker.list" -> brokers
     )
 
@@ -59,8 +58,8 @@ object KafkaStreamProcessing {
       if (rdd.count() > 0) {
         val valuesRdd: RDD[String] = rdd.map(x => x._2)
         sendToKafkaFailureTopic(valuesRdd)
-        val sbtStructuredMessages = SbtStructuredMessageService.getSbtStructuredMessages(valuesRdd)
-        HiveService.insertIntoTable(sqlContext, "SbtStructuredMessage", sbtStructuredMessages)
+        val stbStructuredMessages = StbStructuredMessageService.getStbStructuredMessages(valuesRdd)
+        HiveService.insertIntoTable(sqlContext, stbDataTableName, stbStructuredMessages)
       }
     }
     )
@@ -85,7 +84,7 @@ object KafkaStreamProcessing {
     count
   }
 
-  def initProducer(): Unit ={
+  def initProducer(): Unit = {
     val props: Properties = new Properties
     props.put("bootstrap.servers", "192.168.1.31:9092")
     //    props.put("zk.connect", args(1))

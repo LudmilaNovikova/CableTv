@@ -30,23 +30,23 @@ object STBStatistics {
 
     var timeStart = new DateTime()
 /*
-    logger.info("SELECT * FROM SbtStructuredMessage LIMIT 100")
-    val dfAll = sqlContext.sql("SELECT * FROM SbtStructuredMessage LIMIT 100")
+    logger.info("SELECT * FROM StbStructuredMessage LIMIT 100")
+    val dfAll = sqlContext.sql("SELECT * FROM StbStructuredMessage LIMIT 100")
 
     STBStatisticsFunctions.writeCommonStatistics(dfAll, args(0))
     STBStatisticsFunctions.loggingDuration("periodCS:", timeStart, logger)
 */
 
 
-    val columnStat  = Array("SbtStructuredMessage0.msgType","SbtStructuredMessage0.streamType","SbtStructuredMessage0.spyVersion","SbtStructuredMessage1.playerUrl")
+    val columnStat  = Array("StbStructuredMessage0.msgType","StbStructuredMessage0.streamType","StbStructuredMessage0.spyVersion","StbStructuredMessage1.playerUrl")
     val countCluster = 4
 
-    val dfInterval = sqlContext.sql("SELECT * FROM SbtStructuredMessage LIMIT 10")
-    logger.info("SELECT * FROM SbtStructuredMessage LIMIT 10")
+    val dfInterval = sqlContext.sql("SELECT * FROM StbStructuredMessage LIMIT 10")
+    logger.info("SELECT * FROM StbStructuredMessage LIMIT 10")
 
     println("dfInterval "+dfInterval.count())
     dfInterval.registerTempTable("Interval")
-    sqlContext.sql("select sbtstructuredmessage0.mac from Interval").show()
+    sqlContext.sql("select stbStructuredMessage0.mac from Interval").show()
 
     timeStart = new DateTime()
 

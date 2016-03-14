@@ -8,17 +8,17 @@ import org.apache.spark.sql.hive.HiveContext
  */
 object HiveService {
 
-  def insertIntoTable(sqlContext: HiveContext, tableName: String, rdd: RDD[SbtStructuredMessage]): Unit ={
+  def insertIntoTable(sqlContext: HiveContext, tableName: String, rdd: RDD[StbStructuredMessage]): Unit ={
     import sqlContext.implicits._
 //    println("Going to insert: " + rdd.foreach(println(_)))
-//    rdd.toDF().insertInto("SbtStructuredMessages")
-    rdd.toDF().write.mode(SaveMode.Append).insertInto("SbtStructuredMessage")
+//    rdd.toDF().insertInto("StbStructuredMessages")
+    rdd.toDF().write.mode(SaveMode.Append).insertInto(tableName)
   }
 
-  def createTableSbtStructuredMessage(sqlContext: HiveContext): Unit = {
-    println("Creating Hive table SbtStructuredMessage")
-    sqlContext.sql("CREATE TABLE IF NOT EXISTS SbtStructuredMessage (" +
-      "sbtStructuredMessage0 struct <" +
+  def createTableStbStructuredMessage(sqlContext: HiveContext, tableName: String): Unit = {
+    println("Creating Hive table " + tableName)
+    sqlContext.sql("CREATE TABLE IF NOT EXISTS " + tableName + " (" +
+      "stbStructuredMessage0 struct <" +
       "counter: Int," +
       "msgType: String," +
       "streamType: String," +
@@ -41,7 +41,7 @@ object HiveService {
       "stbIp: String," +
       "serverDate: Timestamp," +
       "spyVersion: String>," +
-      "sbtStructuredMessage1 struct <" +
+      "stbStructuredMessage1 struct <" +
       "playerUrl: String," +
       "contentType: Int," +
       "transportOuter: Int," +
@@ -62,7 +62,7 @@ object HiveService {
       "avPeriodSkew: Int," +
       "bufUnderruns: Int," +
       "bufOverruns: Int>," +
-      "sbtStructuredMessage2 struct <" +
+      "stbStructuredMessage2 struct <" +
       "sdpObjectId: Int," +
       "dvbLevelGood: Int," +
       "dvbLevel: Int," +
