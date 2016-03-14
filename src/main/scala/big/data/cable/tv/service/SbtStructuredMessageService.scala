@@ -7,17 +7,17 @@ import org.apache.spark.rdd.RDD
 /**
  * Created by lnovikova on 10.02.2016.
  */
-object SbtStructuredMessageService {
+object StbStructuredMessageService {
 
-  def getSbtStructuredMessages(rdd: RDD[String]): RDD[SbtStructuredMessage] ={
+  def getStbStructuredMessages(rdd: RDD[String]): RDD[StbStructuredMessage] ={
 
     val format = new java.text.SimpleDateFormat("DD/MM/YYYY HH:mm:ss.SSS")
     val timeFormat = new java.text.SimpleDateFormat("mm:ss.SSS")
-    println("Received string for converting to SbtStructuredMessage: " + rdd.count())
+    println("Received string for converting to StbStructuredMessage: " + rdd.count())
 //    rdd.foreach(println(_))
 
-    rdd.map(_.split(" ")).map(r => SbtStructuredMessage(
-      SbtStructuredMessage0(r(0).toInt,
+    rdd.map(_.split(" ")).map(r => StbStructuredMessage(
+      StbStructuredMessage0(r(0).toInt,
       r(1),
       r(2),
       new Timestamp(format.parse(r(3) + " " + r(4)).getTime()),
@@ -39,7 +39,7 @@ object SbtStructuredMessageService {
       r(21),
       new Timestamp(format.parse(r(22) + " " + r(23)).getTime()),
       r(24)),
-      SbtStructuredMessage1(r(25),
+      StbStructuredMessage1(r(25),
       if(r(26).equals("X")){-1}else{r(26).toInt},
       if(r(27).equals("X")){-1}else{r(27).toInt},
       if(r(28).equals("X")){-1}else{r(28).toInt},
@@ -59,7 +59,7 @@ object SbtStructuredMessageService {
       r(43).toInt,
       r(44).toInt,
       r(45).toInt),
-      SbtStructuredMessage2(r(46).toInt,
+      StbStructuredMessage2(r(46).toInt,
       r(47).toInt,
       r(48).toInt,
       r(49).toInt,

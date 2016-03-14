@@ -1,6 +1,6 @@
 !connect jdbc:hive2://192.168.1.35:10000 hive hive org.apache.hive.jdbc.HiveDriver
-CREATE TABLE IF NOT EXISTS SbtStructuredMessage (
-      sbtStructuredMessage0 struct <
+CREATE TABLE IF NOT EXISTS StbStructuredMessage (
+      stbStructuredMessage0 struct <
       counter: Int,
       msgType: String,
       streamType: String,
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS SbtStructuredMessage (
       stbIp: String,
       serverDate: Timestamp,
       spyVersion: String>,
-      sbtStructuredMessage1 struct <
+      stbStructuredMessage1 struct <
       playerUrl: String,
       contentType: Int,
       transportOuter: Int,
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS SbtStructuredMessage (
       avPeriodSkew: Int,
       bufUnderruns: Int,
       bufOverruns: Int>,
-      sbtStructuredMessage2 struct <
+      stbStructuredMessage2 struct <
       sdpObjectId: Int,
       dvbLevelGood: Int,
       dvbLevel: Int,
