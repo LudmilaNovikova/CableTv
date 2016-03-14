@@ -224,7 +224,10 @@ object STBStatisticsFunctions {
     return dfQ
   }
 
-  def initQTest2(dfPrimaryData: DataFrame, countCluster: Int, timeSt: DateTime): DataFrame = {
+  def initQTest2(countCluster: Int, timeSt: DateTime): DataFrame = {
+
+    val dfInterval = sqlContext.sql("SELECT * FROM SbtStructuredMessage LIMIT 50")
+
 
     val logger = Logger.getLogger(getClass.getName)
     val createQ = sqlContext.sql("CREATE TABLE IF NOT EXISTS Q (" +
@@ -316,7 +319,7 @@ object STBStatisticsFunctions {
     //end --create dfQ
     //dfQ.show(100)
     //timeStart = loggingDuration("return dfQ - " + dfQ.count() , timeStart, logger)
-    return dfQ
+     dfQ
   }
 
   def initQTest3(dfPrimaryData: DataFrame, countCluster: Int, timeSt: DateTime): DataFrame = {
@@ -403,7 +406,7 @@ object STBStatisticsFunctions {
     //end --create dfQ
     //dfQ.show(100)
     //timeStart = loggingDuration("return dfQ - " + dfQ.count() , timeStart, logger)
-    return dfQ
+    dfQ
   }
   def initJ(sc: SparkContext, sqlContext: SQLContext, dfPrimaryData: DataFrame, countCluster: Int, columnStat: Array[String]): DataFrame = {
     val logger = Logger.getLogger(getClass.getName)
@@ -480,7 +483,7 @@ object STBStatisticsFunctions {
     }
     logger.info("dfJ")
     dfJ.show()
-    return dfJ
+    dfJ
   }
 
   def H(sqlContext: SQLContext, dfQ: DataFrame, dfJ: DataFrame): DataFrame = {
@@ -508,7 +511,7 @@ object STBStatisticsFunctions {
     logger.info(dfH.count())
     dfH.show()
 
-    return dfH
+    dfH
   }
 
   def initJTest(sc: SparkContext, sqlContext: SQLContext, countCluster: Int, dfN: DataFrame, columnStat: Array[String]): DataFrame = {
@@ -545,7 +548,7 @@ object STBStatisticsFunctions {
     if (checksumCount != 0) throw new Exception("checksumJCount != 1")
 
     //end --create dfH
-    return dfJ
+    dfJ
   }
 
 
@@ -560,14 +563,14 @@ object STBStatisticsFunctions {
     val hms = new PeriodFormatterBuilder().minimumPrintedDigits(2).printZeroAlways().appendHours().appendSeparator(":").appendMinutes().appendSuffix(":").appendSeconds().toFormatter
     val period = new Period(timeStart, new DateTime()).normalizedStandard()
     logger.info(discr + " DURATION:" + hms.print(period))
-    return new DateTime
+    new DateTime
   }
 
   def printlnDuration(discr: String, timeStart: DateTime): DateTime = {
     val hms = new PeriodFormatterBuilder().minimumPrintedDigits(2).printZeroAlways().appendHours().appendSeparator(":").appendMinutes().appendSuffix(":").appendSeconds().toFormatter
     val period = new Period(timeStart, new DateTime()).normalizedStandard()
     println(discr + " DURATION:" + hms.print(period))
-    return new DateTime
+    new DateTime
   }
 
 }
