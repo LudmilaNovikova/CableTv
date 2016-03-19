@@ -1,7 +1,7 @@
 package big.data.cable.tv.service
 
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.SaveMode
+import org.apache.spark.sql.{SQLContext, SaveMode}
 import org.apache.spark.sql.hive.HiveContext
 /**
  * Created by lnovikova on 10.02.2016.
@@ -70,6 +70,10 @@ object HiveService {
       "curBitrate: Int>" +
       ")")
 
+  }
+
+  def dropTable(sQLContext: SQLContext, tableName: String): Unit = {
+    sQLContext.sql("DROP TABLE IF EXISTS "+tableName)
   }
 
 }
