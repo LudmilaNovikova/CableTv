@@ -527,16 +527,7 @@ object STBStatisticsFunctions {
     //INSERT INTO TABLE primaryDataDistMac
     HiveService.dropTable("primaryDataDistMac")
     HiveService.createTableWithSchemaMac("primaryDataDistMac")
-    println("test")
-/*
-    sqlContext.sql(
-      """WITH m1 AS (SELECT sbtstructuredmessage0.mac as macDist from SbtStructuredMessage LIMIT 50)
-        |from m1
-        |insert into primaryDataDistMac
-        |select distinct(m1.macDist)
-      """.stripMargin).show()
-*/
-    sqlContext.sql("SELECT sbtstructuredmessage0.mac as macDist from SbtStructuredMessage LIMIT 50").write.mode(SaveMode.Append).insertInto("primaryDataDistMac")
+    sqlContext.sql("SELECT sbtstructuredmessage0.mac as macDist from SbtStructuredMessage LIMIT 1000000").distinct().write.mode(SaveMode.Append).insertInto("primaryDataDistMac")
 
     val dfPrimaryDataDistMac = sqlContext.sql("select * from primaryDataDistMac")
     println("primaryDataDistMac")
@@ -547,12 +538,6 @@ object STBStatisticsFunctions {
     //CREATE and INSERT table actualDistMac
     HiveService.dropTable("actualDistMac")
     HiveService.createTableWithSchemaMac("actualDistMac")
-/*
-    val dfActualDistMac = HiveService.insertIntoActualDistMac("initQPrimaryData").select(col("mac").as("macDist") )
-    println("actualDistMac " + dfActualDistMac.count())
-    dfActualDistMac.show()
-    timeStart = printlnDuration("select actual mac: DF dfActualDistMac " + dfActualDistMac.count(), timeStart)
-*/
 
     val dfMac = sqlContext.sql("select distinct mac from Q")
     dfMac.registerTempTable("distMac")
@@ -567,33 +552,18 @@ object STBStatisticsFunctions {
     val dfActualDistMac = sqlContext.sql("SELECT mac as macDist FROM actualDistMac")
       dfActualDistMac.show()
     timeStart = printlnDuration("select actual mac: DF dfActualDistMac " + dfActualDistMac.count(), timeStart)
-
     //-------------------------------------
 
-
-    //CREATE TABLE IF NOT EXISTS tempQ
-//    var dfTempQ = HiveService.createTableWithSchemaQ("tempQ")
-//    timeStart = printlnDuration("Creating Hive table tempQ - " + dfTempQ.count(), timeSt)
+    //CREATE empty dfQ
     val schemaQ = StructType(
       StructField("mac", StringType, false) ::
         StructField("cluster", IntegerType, false) ::
         StructField("pvod", DecimalType(11,10), false) :: Nil)
     var dfQ = sqlContext.createDataFrame(sc.emptyRDD[Row], schemaQ)
-
     //--------------------------------
-
 
     if (dfActualDistMac.count() != 0) {
       for (i <- 1 to countCluster) {
-        //        val valueSum = sqlContext.sql(
-        //          """select q.mac,"""+i+""" as cluster,udfTest(sum(pvod),rand(),"""+(1==countCluster)+""") as pvod,
-        //            |from actualDistMac adm
-        //            |left join dfQ q on adm.macDist = q.mac
-        //            |group by adm.macDist
-        //          """.stripMargin)
-        ////        timeStart = printlnDuration("for i" + i + " valueSum: " + valueSum.count(), timeStart)
-        ////        println("for i " + i + "valueSum " + valueSum.count())
-
         val valueSum = dfActualDistMac
           .join(dfQ, dfActualDistMac("macDist") === dfQ("mac"), "left_outer")
           .groupBy(col("macDist")).agg(sum("pvod").cast(DecimalType(11,10)).as("sum_pvod"))
@@ -614,7 +584,7 @@ object STBStatisticsFunctions {
       dfQ.write.mode(SaveMode.Append).insertInto("Q")
       timeStart = printlnDuration("dfTempQ.write.mode " + dfQ.count() , timeStart)
 
-      //val checksumDF = dfQ.groupBy(col("mac")).agg(sum("pvod").as("checksum")).filter("checksum<>1")
+      //checking sum(pvod)<>1
       val checksumDF = sqlContext.sql("select mac,sum(pvod) as checksum from tempQ group by mac having sum(pvod)<>1")
       checksumDF.show(100)
       val checksumCount = checksumDF.count()
@@ -623,13 +593,8 @@ object STBStatisticsFunctions {
         HiveService.deleteWrongMac(checksumDF, "tempQ")
         throw new Exception("checksumQCount != 1")
       }
-
-
+      //---------------------
     }
-
-    //end --create dfQ
-    //dfQ.show(100)
-    //timeStart = loggingDuration("return dfQ - " + dfQ.count() , timeStart, logger)
     dfQ
   }
 

@@ -29,24 +29,23 @@ object STBStatistics {
     }
 
     var timeStart = new DateTime()
+/*
     STBStatisticsFunctions.printlnCommonStatistics()
     printlnDuration("periodCS:", timeStart)
+*/
 
 
-/*
-    val columnStat  = Array("SbtStructuredMessage0.msgType","SbtStructuredMessage0.streamType","SbtStructuredMessage0.spyVersion","SbtStructuredMessage1.playerUrl")
     val countCluster = 4
 
     timeStart = new DateTime()
 
-    val logger = Logger.getLogger(getClass.getName)
+    //val logger = Logger.getLogger(getClass.getName)
     //HiveService.creataTableStbQ(sqlContext,countCluster)
 
     timeStart = printlnDuration("Creating Hive table Q ", timeStart)
 
-    val dfQ = STBStatisticsFunctions.initQTest2(countCluster, timeStart)
-    timeStart = STBStatisticsFunctions.loggingDuration("periodQ count" + dfQ.count() ,timeStart,logger)
-*/
+    val dfQ = STBStatisticsFunctions.initQTest2_3(countCluster, timeStart)
+    timeStart = printlnDuration("periodQ count" + dfQ.count() ,timeStart)
 
     /*
     timeStart = new DateTime()
