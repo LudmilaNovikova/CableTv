@@ -80,6 +80,65 @@ object STBStatisticsFunctions {
     //macDF.write.parquet("parquetTest")
   }
 
+  def printlnCommonStatistics(): Unit = {
+    val primaryStatDF = sqlContext.sql("SELECT * FROM SbtStructuredMessage")
+    import java.io._
+    primaryStatDF.describe("sbtstructuredmessage0.counter", "sbtstructuredmessage0.received", "sbtstructuredmessage0.linkFaults", "sbtstructuredmessage0.restored"
+      , "sbtstructuredmessage0.overflow", "sbtstructuredmessage0.underflow", "sbtstructuredmessage1.uptime", "sbtstructuredmessage1.vidDecodeErrors", "sbtstructuredmessage1.vidDataErrors"
+      , "sbtstructuredmessage1.avTimeSkew", "sbtstructuredmessage1.avPeriodSkew", "sbtstructuredmessage1.bufUnderruns", "sbtstructuredmessage1.bufOverruns", "sbtstructuredmessage2.dvbLevel"
+      , "sbtstructuredmessage2.curBitrate").show()
+
+
+
+    primaryStatDF.filter("sbtstructuredmessage0.lost>=0").describe("sbtstructuredmessage0.lost").show()
+    primaryStatDF.filter("sbtstructuredmessage0.mdiDf>=0").describe("sbtstructuredmessage0.mdiDf").show()
+    primaryStatDF.filter("sbtstructuredmessage0.mdiMlr>=0").describe("sbtstructuredmessage0.mdiMlr").show()
+    primaryStatDF.filter("sbtstructuredmessage0.regionId>=0").describe("sbtstructuredmessage0.regionId").show()
+    primaryStatDF.filter("sbtstructuredmessage1.contentType>=0").describe("sbtstructuredmessage1.contentType").show()
+
+    primaryStatDF.filter("sbtstructuredmessage1.transportOuter>=0").describe("sbtstructuredmessage1.transportOuter").show()
+    primaryStatDF.filter("sbtstructuredmessage1.transportInner>=0").describe("sbtstructuredmessage1.transportInner").show()
+    primaryStatDF.filter("sbtstructuredmessage1.channelId>=0").describe("sbtstructuredmessage1.channelId").show()
+    primaryStatDF.filter("sbtstructuredmessage1.playSession>=0").describe("sbtstructuredmessage1.playSession").show()
+    primaryStatDF.filter("sbtstructuredmessage1.scrambled>=0").describe("sbtstructuredmessage1.scrambled").show()
+    primaryStatDF.filter("sbtstructuredmessage1.powerState>=0").describe("sbtstructuredmessage1.powerState").show()
+    //в инструкции написано 0 - неизвестно. Но в выборке присутствуют только значения -1(3) и 0 (30003)
+    primaryStatDF.filter("sbtstructuredmessage1.casType>0").describe("sbtstructuredmessage1.casType").show() //primaryStatDF.groupBy("casType").count().show()
+    //36 CAS_KEY_TIME  0 - неизвестно
+    primaryStatDF.filter("sbtstructuredmessage1.casKeyTime>0").describe("sbtstructuredmessage1.casKeyTime").show() //primaryStatDF.groupBy("casKeyTime").count().show()
+    //37 VID_FRAMES 0 - видеостати стика недоступна
+    primaryStatDF.filter("sbtstructuredmessage1.vidFrames>0").describe("sbtstructuredmessage1.vidFrames").show()
+    primaryStatDF.filter("sbtstructuredmessage1.audFrames>0").describe("sbtstructuredmessage1.audFrames").show()
+    //т.к. поле audDataErrors показывает наличие ошибок при даступной аудиостатискики (audFrames>0) 0 здесь тоже информация для записей которые audFrames>0
+    primaryStatDF.filter("sbtstructuredmessage1.audFrames>0").describe("sbtstructuredmessage1.audDataErrors").show()
+    primaryStatDF.filter("sbtstructuredmessage2.sdpObjectId>=0").describe("sbtstructuredmessage2.sdpObjectId").show()
+    primaryStatDF.filter("sbtstructuredmessage2.dvbLevelGood>=0").describe("sbtstructuredmessage2.dvbLevelGood").show()
+    primaryStatDF.filter("sbtstructuredmessage2.dvbLevel>=0").describe("sbtstructuredmessage2.dvbLevel").show()
+    primaryStatDF.filter("sbtstructuredmessage2.dvbFrequency>=0").describe("sbtstructuredmessage2.dvbFrequency").show()
+
+
+
+    primaryStatDF.groupBy("StbStructuredMessage0.msgType").count().show()
+    primaryStatDF.groupBy("StbStructuredMessage0.streamType").count().show()
+    //primaryStatDF.groupBy("mac").count().show()
+    //primaryStatDF.groupBy("streamAddr").count().show()
+    primaryStatDF.groupBy("StbStructuredMessage0.lostOverflow").count().show()
+    primaryStatDF.groupBy("StbStructuredMessage0.plc").count().show()
+    //serviceAccountNumber
+    //val dfFilterServiceAccountNumber = primaryStatDF.filter("serviceAccountNumber not in ('-1','N/A')")
+    //dfFilterServiceAccountNumber.groupBy("serviceAccountNumber").count().join(dfFilterServiceAccountNumber.agg(count("serviceAccountNumber").as("countAll"))).show
+    //primaryStatDF.groupBy("stbIp").count().show()
+    primaryStatDF.groupBy("StbStructuredMessage0.spyVersion").count().show()
+    //playerUrl
+    val dfFilterPlayerUrl = primaryStatDF.filter("StbStructuredMessage1.playerUrl not in ('X')")
+    dfFilterPlayerUrl.groupBy("StbStructuredMessage1.playerUrl").count().join(dfFilterPlayerUrl.agg(count("StbStructuredMessage1.playerUrl").as("countAll"))).show()
+
+    val macListDF = primaryStatDF.groupBy(col("StbStructuredMessage0.mac").as("mac1")).count().orderBy(desc("count")).limit(10).select("mac1")
+    val macDF = primaryStatDF.join(macListDF, macListDF("mac1") === primaryStatDF("mac")).select(primaryStatDF.col("*")) //.select(primaryStatDF.columns.mkString(", "))
+    macDF.show
+    //macDF.write.parquet("parquetTest")
+  }
+
   def initN(sc: SparkContext, sqlContext: SQLContext, primaryStatDF: DataFrame, columnStat: Array[String]): DataFrame = {
 
     //create dfN
@@ -226,7 +285,7 @@ object STBStatisticsFunctions {
 
   def initQTest2(countCluster: Int, timeSt: DateTime): DataFrame = {
 
-    HiveService.dropTable(sqlContext,"initQPrimaryData")
+    HiveService.dropTable("initQPrimaryData")
     HiveService.createTableStbStructuredMessage(sqlContext,"initQPrimaryData")
 
     sqlContext.sql("INSERT INTO TABLE initQPrimaryData SELECT * FROM SbtStructuredMessage LIMIT 50")
@@ -279,7 +338,6 @@ object STBStatisticsFunctions {
     StructField("cluster", IntegerType, false) ::
     StructField("pvod", DecimalType(11,10), false) :: Nil)
     var dfQ = sqlContext.createDataFrame(sc.emptyRDD[Row], schemaQ)
-    dfQ.registerTempTable("Q")
 
 //    sqlContext.udf.register("udfTest",(c: java.math.BigDecimal, r: java.math.BigDecimal, isLastClaster: Boolean) =>
 //      {
@@ -290,7 +348,7 @@ object STBStatisticsFunctions {
 
 
     if (dfActualDistMac.count() != 0) {
-      for (i <- 2 to countCluster) {
+      for (i <- 1 to countCluster) {
 //        val valueSum = sqlContext.sql(
 //          """select q.mac,"""+i+""" as cluster,udfTest(sum(pvod),rand(),"""+(1==countCluster)+""") as pvod,
 //            |from actualDistMac adm
@@ -318,7 +376,7 @@ object STBStatisticsFunctions {
 
       println("dfQ " + dfQ.count())
       dfQ.registerTempTable("dfQ")
-      dfQ.show(100)
+      dfQ.orderBy("mac").show(100)
 
       //val checksumDF = dfQ.groupBy(col("mac")).agg(sum("pvod").as("checksum")).filter("checksum<>1")
       val checksumDF = sqlContext.sql("select mac,sum(pvod) as checksum from dfQ group by mac having sum(pvod)<>1")
@@ -341,7 +399,7 @@ object STBStatisticsFunctions {
 
   def initQTest2_2(countCluster: Int, timeSt: DateTime): DataFrame = {
 
-    HiveService.dropTable(sqlContext,"initQPrimaryData")
+    HiveService.dropTable("initQPrimaryData")
     HiveService.createTableStbStructuredMessage(sqlContext,"initQPrimaryData")
 
     sqlContext.sql("INSERT INTO TABLE initQPrimaryData SELECT * FROM SbtStructuredMessage LIMIT 50")
@@ -444,6 +502,127 @@ object STBStatisticsFunctions {
 
       sqlContext.sql("INSERT INTO TABLE Q SELECT mac,cluster,pvod FROM dfQ")
       timeStart = loggingDuration("INSERT INTO TABLE Q - " + dfQ.count(), timeStart, logger)
+
+
+    }
+
+    //end --create dfQ
+    //dfQ.show(100)
+    //timeStart = loggingDuration("return dfQ - " + dfQ.count() , timeStart, logger)
+    dfQ
+  }
+
+  def initQTest2_3(countCluster: Int, timeSt: DateTime): DataFrame = {
+
+    //CREATE TABLE IF NOT EXISTS Q
+    val createQ = HiveService.createTableWithSchemaQ("Q")
+    var timeStart = printlnDuration("Creating Hive table Q - " + createQ.count(), timeSt)
+    //---------------------------
+
+    //checking the count of clusters
+    val dfCluster = HiveService.checkingCountCluster(countCluster, "Q")
+    timeStart = printlnDuration("checking the count of clusters " + dfCluster.count() + "(" + countCluster + ")", timeStart)
+    //-----------------------------
+
+    //INSERT INTO TABLE primaryDataDistMac
+    HiveService.dropTable("primaryDataDistMac")
+    HiveService.createTableWithSchemaMac("primaryDataDistMac")
+    println("test")
+/*
+    sqlContext.sql(
+      """WITH m1 AS (SELECT sbtstructuredmessage0.mac as macDist from SbtStructuredMessage LIMIT 50)
+        |from m1
+        |insert into primaryDataDistMac
+        |select distinct(m1.macDist)
+      """.stripMargin).show()
+*/
+    sqlContext.sql("SELECT sbtstructuredmessage0.mac as macDist from SbtStructuredMessage LIMIT 50").write.mode(SaveMode.Append).insertInto("primaryDataDistMac")
+
+    val dfPrimaryDataDistMac = sqlContext.sql("select * from primaryDataDistMac")
+    println("primaryDataDistMac")
+    dfPrimaryDataDistMac.show()
+    timeStart = printlnDuration("INSERT INTO TABLE initQPrimaryData - " + dfPrimaryDataDistMac.count(), timeSt)
+    //----------------------------------
+
+    //CREATE and INSERT table actualDistMac
+    HiveService.dropTable("actualDistMac")
+    HiveService.createTableWithSchemaMac("actualDistMac")
+/*
+    val dfActualDistMac = HiveService.insertIntoActualDistMac("initQPrimaryData").select(col("mac").as("macDist") )
+    println("actualDistMac " + dfActualDistMac.count())
+    dfActualDistMac.show()
+    timeStart = printlnDuration("select actual mac: DF dfActualDistMac " + dfActualDistMac.count(), timeStart)
+*/
+
+    val dfMac = sqlContext.sql("select distinct mac from Q")
+    dfMac.registerTempTable("distMac")
+    timeStart = printlnDuration("register temp table dfMac " + dfMac.count(), timeStart)
+
+    sqlContext.sql(
+      """INSERT INTO actualDistMac SELECT pd.mac FROM primaryDataDistMac pd
+        |left join distMac dm on (pd.mac = dm.mac)
+        |WHERE  dm.mac is null
+      """.stripMargin)
+    println("dfActualDistMac")
+    val dfActualDistMac = sqlContext.sql("SELECT mac as macDist FROM actualDistMac")
+      dfActualDistMac.show()
+    timeStart = printlnDuration("select actual mac: DF dfActualDistMac " + dfActualDistMac.count(), timeStart)
+
+    //-------------------------------------
+
+
+    //CREATE TABLE IF NOT EXISTS tempQ
+//    var dfTempQ = HiveService.createTableWithSchemaQ("tempQ")
+//    timeStart = printlnDuration("Creating Hive table tempQ - " + dfTempQ.count(), timeSt)
+    val schemaQ = StructType(
+      StructField("mac", StringType, false) ::
+        StructField("cluster", IntegerType, false) ::
+        StructField("pvod", DecimalType(11,10), false) :: Nil)
+    var dfQ = sqlContext.createDataFrame(sc.emptyRDD[Row], schemaQ)
+
+    //--------------------------------
+
+
+    if (dfActualDistMac.count() != 0) {
+      for (i <- 1 to countCluster) {
+        //        val valueSum = sqlContext.sql(
+        //          """select q.mac,"""+i+""" as cluster,udfTest(sum(pvod),rand(),"""+(1==countCluster)+""") as pvod,
+        //            |from actualDistMac adm
+        //            |left join dfQ q on adm.macDist = q.mac
+        //            |group by adm.macDist
+        //          """.stripMargin)
+        ////        timeStart = printlnDuration("for i" + i + " valueSum: " + valueSum.count(), timeStart)
+        ////        println("for i " + i + "valueSum " + valueSum.count())
+
+        val valueSum = dfActualDistMac
+          .join(dfQ, dfActualDistMac("macDist") === dfQ("mac"), "left_outer")
+          .groupBy(col("macDist")).agg(sum("pvod").cast(DecimalType(11,10)).as("sum_pvod"))
+          .withColumn("cluster", lit(i: Int).cast(IntegerType))
+          .withColumn("rand", rand().cast(DecimalType(11,10)))
+          .withColumn("pvod", myFunc(col("sum_pvod"), col("rand").cast(DecimalType(11,10)), lit(i == countCluster: Boolean)).cast(DecimalType(11,10)))
+        valueSum.show(100)
+        timeStart = loggingDuration("for i" + i + " valueSum: " + valueSum.count() , timeStart, logger)
+        val valueSum1 = valueSum.select(col("macDist").as("mac"), col("cluster"), col("pvod").cast(DecimalType(11,10)))
+
+        dfQ = dfQ.unionAll(valueSum1)
+
+        timeStart = printlnDuration("for i" + i + " tempQ.unionAll(valueSum): " + dfQ.count() , timeStart)
+      }
+
+      println("dfQ " + dfQ.count())
+      dfQ.orderBy("mac").show(100)
+      dfQ.write.mode(SaveMode.Append).insertInto("Q")
+      timeStart = printlnDuration("dfTempQ.write.mode " + dfQ.count() , timeStart)
+
+      //val checksumDF = dfQ.groupBy(col("mac")).agg(sum("pvod").as("checksum")).filter("checksum<>1")
+      val checksumDF = sqlContext.sql("select mac,sum(pvod) as checksum from tempQ group by mac having sum(pvod)<>1")
+      checksumDF.show(100)
+      val checksumCount = checksumDF.count()
+      timeStart = printlnDuration("checksumCount - "+checksumCount , timeStart)
+      if (checksumCount != 0){
+        HiveService.deleteWrongMac(checksumDF, "tempQ")
+        throw new Exception("checksumQCount != 1")
+      }
 
 
     }

@@ -1,6 +1,6 @@
 package big.data.cable.tv
 
-import big.data.cable.tv.service.STBStatisticsFunctions
+import big.data.cable.tv.service.{HiveService, STBStatisticsFunctions}
 import big.data.cable.tv.service.STBStatisticsFunctions._
 import org.apache.log4j.Logger
 import org.apache.spark.sql.DataFrame
@@ -29,22 +29,24 @@ object STBStatistics {
     }
 
     var timeStart = new DateTime()
+    STBStatisticsFunctions.printlnCommonStatistics()
+    printlnDuration("periodCS:", timeStart)
+
+
 /*
-    logger.info("SELECT * FROM SbtStructuredMessage LIMIT 100")
-    val dfAll = sqlContext.sql("SELECT * FROM SbtStructuredMessage LIMIT 100")
-
-    STBStatisticsFunctions.writeCommonStatistics(dfAll, args(0))
-    STBStatisticsFunctions.loggingDuration("periodCS:", timeStart, logger)
-*/
-
-
     val columnStat  = Array("SbtStructuredMessage0.msgType","SbtStructuredMessage0.streamType","SbtStructuredMessage0.spyVersion","SbtStructuredMessage1.playerUrl")
     val countCluster = 4
 
     timeStart = new DateTime()
 
+    val logger = Logger.getLogger(getClass.getName)
+    //HiveService.creataTableStbQ(sqlContext,countCluster)
+
+    timeStart = printlnDuration("Creating Hive table Q ", timeStart)
+
     val dfQ = STBStatisticsFunctions.initQTest2(countCluster, timeStart)
     timeStart = STBStatisticsFunctions.loggingDuration("periodQ count" + dfQ.count() ,timeStart,logger)
+*/
 
     /*
     timeStart = new DateTime()
