@@ -527,7 +527,7 @@ object STBStatisticsFunctions {
     //INSERT INTO TABLE primaryDataDistMac
     HiveService.dropTable("primaryDataDistMac")
     HiveService.createTableWithSchemaMac("primaryDataDistMac")
-    sqlContext.sql("SELECT sbtstructuredmessage0.mac as macDist from SbtStructuredMessage LIMIT 1000000").distinct().write.mode(SaveMode.Append).insertInto("primaryDataDistMac")
+    sqlContext.sql("SELECT sbtstructuredmessage0.mac as macDist from primaryData LIMIT 1000000").distinct().write.mode(SaveMode.Append).insertInto("primaryDataDistMac")
 
     val dfPrimaryDataDistMac = sqlContext.sql("select * from primaryDataDistMac")
     println("primaryDataDistMac")
@@ -596,6 +596,70 @@ object STBStatisticsFunctions {
       //---------------------
     }
     dfQ
+  }
+
+  def initJTest_2_3(countCluster: Int, columnStat: Array[String], timeSt: DateTime): DataFrame = {
+
+    //CREATE TABLE IF NOT EXISTS J
+    val createJ = HiveService.createTableWithSchemaJ("J")
+    var timeStart = printlnDuration("Creating Hive table J - " + createJ.count(), timeSt)
+    //---------------------------
+
+    //checking the count of clusters
+    val dfCluster = HiveService.checkingCountCluster(countCluster, "J")
+    timeStart = printlnDuration("checking the count of clusters " + dfCluster.count() + "(" + countCluster + ")", timeStart)
+    //-----------------------------
+
+    //INSERT INTO TABLE primaryDataDistColumnName
+    HiveService.dropTable("primaryDataDistCNV")
+    HiveService.createTableWithSchemaCNV("primaryDataDistCNV")
+    sqlContext.sql("SELECT sbtstructuredmessage0.mac as macDist from primaryData LIMIT 1000000").distinct().write.mode(SaveMode.Append).insertInto("primaryDataDistMac")
+
+/*
+    val dfPrimaryDataDistColumnName = sqlContext.sql("select * from primaryDataDistMac")
+    println("primaryDataDistMac")
+    dfPrimaryDataDistMac.show()
+    timeStart = printlnDuration("INSERT INTO TABLE initQPrimaryData - " + dfPrimaryDataDistMac.count(), timeSt)
+    //----------------------------------
+*/
+
+
+    //create dfJ
+    val schemaJ = StructType(
+      StructField("cluster", IntegerType, false) ::
+        StructField("columnName", StringType, false) ::
+        StructField("value", StringType, false) ::
+        StructField("pvod", DoubleType, false) :: Nil)
+    var dfJ = sqlContext.createDataFrame(sc.emptyRDD[Row], schemaJ)
+/*
+
+    val dfNDistinct = dfN.select(col("columnName"), col("value")).distinct()
+    val columnNameValueDist = dfNDistinct
+      .withColumn("cluster", lit(1: Int).cast(IntegerType))
+      .withColumn("pvod", rand().cast(DoubleType))
+      .select(col("cluster"), col("columnName"), col("value"), col("pvod"))
+
+    dfJ = dfJ.unionAll(columnNameValueDist)
+
+    //dfJ.show(100)
+    for (i <- 2 to countCluster) {
+      val valueJ = dfJ
+        .groupBy(col("columnName"), col("value")).agg(sum("pvod").as("sum_pvod"))
+        .withColumn("cluster", lit(i: Int).cast(IntegerType))
+        .withColumn("rand", rand().cast(DoubleType))
+        .withColumn("pvod", myFunc(col("sum_pvod"), col("rand"), lit(i == countCluster: Boolean)))
+        .select(col("cluster"), col("columnName"), col("value"), col("pvod"))
+      //valueJ.show(100)
+      dfJ = dfJ.unionAll(valueJ)
+    }
+    //dfJ.show(100)
+
+    val checksumCount = dfJ.groupBy(col("columnName"), col("value")).agg(sum("pvod").as("checksum")).filter("checksum<>1").count()
+    if (checksumCount != 0) throw new Exception("checksumJCount != 1")
+
+    //end --create dfH
+*/
+    dfJ
   }
 
   def initQTest3(dfPrimaryData: DataFrame, countCluster: Int, timeSt: DateTime): DataFrame = {

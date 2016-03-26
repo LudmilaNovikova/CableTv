@@ -16,6 +16,11 @@ object HiveService {
     rdd.toDF().write.mode(SaveMode.Append).insertInto(tableName)
   }
 
+  def insertIntoTableDF(tableName: String, df: DataFrame): Unit ={
+    println("insertInto table "+tableName)
+    df.write.mode(SaveMode.Append).insertInto(tableName)
+  }
+
   def createTableStbStructuredMessage(sqlContext: HiveContext, tableName: String): Unit = {
     println("Creating Hive table " + tableName)
     sqlContext.sql("CREATE TABLE IF NOT EXISTS " + tableName + " (" +
@@ -74,6 +79,7 @@ object HiveService {
   }
 
   def dropTable(tableName: String): DataFrame = {
+    println("DROP TABLE IF EXISTS "+tableName)
     sqlContext.sql("DROP TABLE IF EXISTS "+tableName)
   }
 
@@ -142,4 +148,40 @@ object HiveService {
   }
 
 
+  def createTablePrimaryData():Unit = {
+    sqlContext.sql("SELECT * from SbtStructuredMessage LIMIT 1000000").write.mode(SaveMode.Append).insertInto("primaryData")
+ }
+
+  def createTableWithSchemaJ(tableName: String):DataFrame = {
+    sqlContext.sql("CREATE TABLE IF NOT EXISTS "+tableName+" (" +
+      "cluster Int," +
+      "columnName String," +
+      "value String," +
+      "pvod Decimal(11,10)" +
+      ")")
+  }
+
+  def createTableWithSchemaCNV(tableName: String):DataFrame = {
+    sqlContext.sql("CREATE TABLE IF NOT EXISTS "+tableName+" (" +
+      "columnName String," +
+      "value String"+
+      ")")
+  }
+
+  def createTableUsers(nameTable : String):DataFrame = {
+    println("CREATE TABLE IF NOT EXISTS "+nameTable)
+    sqlContext.sql("CREATE TABLE IF NOT EXISTS "+nameTable+" (" +
+      "mac String," +
+      "cluster Int," +
+      "count Int"+
+      ")")
+  }
+
+  def createTableClusters(nameTable : String):DataFrame = {
+    sqlContext.sql("CREATE TABLE IF NOT EXISTS "+nameTable+" (" +
+      "cluster Int," +
+      "col Int," +
+      "value float"+
+      ")")
+  }
 }

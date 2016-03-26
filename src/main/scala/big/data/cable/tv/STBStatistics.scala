@@ -3,7 +3,7 @@ package big.data.cable.tv
 import big.data.cable.tv.service.{HiveService, STBStatisticsFunctions}
 import big.data.cable.tv.service.STBStatisticsFunctions._
 import org.apache.log4j.Logger
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{SaveMode, DataFrame}
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.{SparkContext, SparkConf}
@@ -22,7 +22,7 @@ object STBStatistics {
 
   def main(args: Array[String]): Unit ={
     if (args.length < 1) {
-      System.err.println(s"""
+      System.err.println("""
                             |Usage: STBStatistics <path to save statistics file>
             """.stripMargin)
       System.exit(1)
@@ -35,6 +35,7 @@ object STBStatistics {
 */
 
 
+    val columnStat  = Array("SbtStructuredMessage0.msgType","SbtStructuredMessage0.streamType")
     val countCluster = 4
 
     timeStart = new DateTime()
@@ -44,15 +45,16 @@ object STBStatistics {
 
     timeStart = printlnDuration("Creating Hive table Q ", timeStart)
 
+    //INSERT INTO TABLE primaryData
+    HiveService.dropTable("primaryData")
+    val dfPrimaryData = HiveService.createTablePrimaryData()
+
     val dfQ = STBStatisticsFunctions.initQTest2_3(countCluster, timeStart)
     timeStart = printlnDuration("periodQ count" + dfQ.count() ,timeStart)
 
-    /*
-    timeStart = new DateTime()
-    val dfJ = STBStatisticsFunctions.initJ(sc, sqlContext, dfInterval, countCluster,columnStat)
-    val periodJ = new Period(timeStart, new DateTime()).normalizedStandard()
-    logger.info("periodJ:" + hms.print(periodJ) + " count" + dfJ.count())
-*/
+    val dfJ = STBStatisticsFunctions.initJTest_2_3(countCluster,columnStat, timeStart)
+    timeStart = printlnDuration("periodJ count" + dfJ.count() ,timeStart)
+
     /*
 
         timeStart = new DateTime()
