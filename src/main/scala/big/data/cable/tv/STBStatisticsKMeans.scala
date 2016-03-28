@@ -37,7 +37,7 @@ object STBStatisticsKMeans {
         |  , cast(sbtstructuredmessage1.avTimeSkew as double), cast(sbtstructuredmessage1.avPeriodSkew as double)
         |  , cast(sbtstructuredmessage1.bufUnderruns as double), cast(sbtstructuredmessage1.bufOverruns as double)
         |  , cast(sbtstructuredmessage2.dvbLevel as double), cast(sbtstructuredmessage2.curBitrate as double)
-        |  from SbtStructuredMessage LIMIT 100000000""".stripMargin)
+        |  from SbtStructuredMessage LIMIT 10000000""".stripMargin)
 
     println("dfPrimariData - " + dfPrimariData.count())
     dfPrimariData.show()
@@ -49,7 +49,7 @@ object STBStatisticsKMeans {
 
     import sqlContext.implicits._
     val usersDF = usersRDD.toDF;
-    val usersGroupByDF = usersDF.groupBy(col("user"), col("cluster")).count()
+    val usersGroupByDF = usersDF.groupBy(col("mac"), col("cluster")).count()
     usersGroupByDF.show()
 
     //insert into table Users
@@ -82,12 +82,20 @@ object STBStatisticsKMeans {
 
   def createVectorFromRow(r: org.apache.spark.sql.Row): Vector = {
 
-    Vectors.dense (Array (r.getDouble (1), r.getDouble (2)
-    , r.getDouble (3), r.getDouble (4)
-    , r.getDouble (5), r.getDouble (6)
-    , r.getDouble (7), r.getDouble (8)
-    , r.getDouble (9), r.getDouble (10)
-    , r.getDouble (11), r.getDouble (12)
-    , r.getDouble (13), r.getDouble (14) ) )
+    Vectors.dense (Array (r.getDouble(1), r.getDouble(2)
+    , r.getDouble(3), r.getDouble(4)
+    , r.getDouble(5), r.getDouble(6)
+    , r.getDouble(7), r.getDouble(8)
+    , r.getDouble(9), r.getDouble(10)
+    , r.getDouble(11), r.getDouble(12)
+    , r.getDouble(13), r.getDouble(14) ) )
+  }
+  def validation(d:Double):Double = {
+    if(d==(-1)){
+      return 0.toDouble
+    } else{
+      return d
+    }
+
   }
 }

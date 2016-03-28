@@ -177,7 +177,17 @@ object HiveService {
       ")")
   }
 
+  def createTableStreamingUsers(nameTable : String):DataFrame = {
+    println("CREATE TABLE IF NOT EXISTS "+nameTable)
+    sqlContext.sql("CREATE TABLE IF NOT EXISTS "+nameTable+" (" +
+      "mac String," +
+      "cluster Int"+
+      ")")
+  }
+
+
   def createTableClusters(nameTable : String):DataFrame = {
+    println("CREATE TABLE IF NOT EXISTS "+nameTable)
     sqlContext.sql("CREATE TABLE IF NOT EXISTS "+nameTable+" (" +
       "cluster Int," +
       "col Int," +

@@ -2,6 +2,7 @@ package big.data.cable.tv.service
 
 import java.sql.Timestamp
 
+import org.apache.spark.mllib.linalg.Vectors
 import org.apache.spark.rdd.RDD
 
 /**
@@ -67,6 +68,25 @@ object StbStructuredMessageService {
     )
     )//    saveFileToHdfs(sc)
 
+  }
+
+  def getRDDVector(rdd: RDD[String]): RDD[org.apache.spark.mllib.linalg.Vector] ={
+
+    val format = new java.text.SimpleDateFormat("DD/MM/YYYY HH:mm:ss.SSS")
+    val timeFormat = new java.text.SimpleDateFormat("mm:ss.SSS")
+    println("Received string for converting to StbStructuredMessage: " + rdd.count())
+    //    rdd.foreach(println(_))
+
+    rdd.map(_.split(" ")).map(r => Vectors.dense(Array(r(8).toDouble, r(9).toDouble
+      , r(13).toDouble, r(14).toDouble
+      , r(15).toDouble, r(34).toDouble
+      , r(38).toDouble, r(39).toDouble
+      , r(42).toDouble, r(43).toDouble
+      , r(44).toDouble, r(45).toDouble
+      , r(47).toDouble, r(50).toDouble
+    ))
+
+    ) //    saveFileToHdfs(sc)
   }
 
 }
