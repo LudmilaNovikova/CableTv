@@ -1,9 +1,9 @@
 package big.data.cable.tv
 
-import big.data.cable.tv.service.STBStatisticsFunctions
+import big.data.cable.tv.service.{HiveService, STBStatisticsFunctions}
 import big.data.cable.tv.service.STBStatisticsFunctions._
 import org.apache.log4j.Logger
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{SaveMode, DataFrame}
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.{SparkContext, SparkConf}
@@ -22,7 +22,7 @@ object STBStatistics {
 
   def main(args: Array[String]): Unit ={
     if (args.length < 1) {
-      System.err.println(s"""
+      System.err.println("""
                             |Usage: STBStatistics <path to save statistics file>
             """.stripMargin)
       System.exit(1)
@@ -30,35 +30,31 @@ object STBStatistics {
 
     var timeStart = new DateTime()
 /*
-    logger.info("SELECT * FROM StbStructuredMessage LIMIT 100")
-    val dfAll = sqlContext.sql("SELECT * FROM StbStructuredMessage LIMIT 100")
-
-    STBStatisticsFunctions.writeCommonStatistics(dfAll, args(0))
-    STBStatisticsFunctions.loggingDuration("periodCS:", timeStart, logger)
+    STBStatisticsFunctions.printlnCommonStatistics()
+    printlnDuration("periodCS:", timeStart)
 */
 
 
-    val columnStat  = Array("StbStructuredMessage0.msgType","StbStructuredMessage0.streamType","StbStructuredMessage0.spyVersion","StbStructuredMessage1.playerUrl")
+    val columnStat  = Array("SbtStructuredMessage0.msgType","SbtStructuredMessage0.streamType")
     val countCluster = 4
 
-    val dfInterval = sqlContext.sql("SELECT * FROM StbStructuredMessage LIMIT 10")
-    logger.info("SELECT * FROM StbStructuredMessage LIMIT 10")
-
-    println("dfInterval "+dfInterval.count())
-    dfInterval.registerTempTable("Interval")
-    sqlContext.sql("select stbStructuredMessage0.mac from Interval").show()
-
     timeStart = new DateTime()
 
-    val dfQ = STBStatisticsFunctions.initQTest(dfInterval,getDistinctMacQ(timeStart, countCluster), countCluster, timeStart)
-    timeStart = STBStatisticsFunctions.loggingDuration("periodQ count" + dfQ.count() ,timeStart,logger)
+    //val logger = Logger.getLogger(getClass.getName)
+    //HiveService.creataTableStbQ(sqlContext,countCluster)
 
-    /*
-    timeStart = new DateTime()
-    val dfJ = STBStatisticsFunctions.initJ(sc, sqlContext, dfInterval, countCluster,columnStat)
-    val periodJ = new Period(timeStart, new DateTime()).normalizedStandard()
-    logger.info("periodJ:" + hms.print(periodJ) + " count" + dfJ.count())
-*/
+    timeStart = printlnDuration("Creating Hive table Q ", timeStart)
+
+    //INSERT INTO TABLE primaryData
+    HiveService.dropTable("primaryData")
+    val dfPrimaryData = HiveService.createTablePrimaryData()
+
+    val dfQ = STBStatisticsFunctions.initQTest2_3(countCluster, timeStart)
+    timeStart = printlnDuration("periodQ count" + dfQ.count() ,timeStart)
+
+    val dfJ = STBStatisticsFunctions.initJTest_2_3(countCluster,columnStat, timeStart)
+    timeStart = printlnDuration("periodJ count" + dfJ.count() ,timeStart)
+
     /*
 
         timeStart = new DateTime()
